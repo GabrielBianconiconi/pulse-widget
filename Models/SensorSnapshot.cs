@@ -27,4 +27,21 @@ public sealed record SensorSnapshot(
     double? NetworkUploadBytes,
     IReadOnlyList<GpuDescriptor> AvailableGpus,
     string SelectedGpuIdentifier,
-    string Status);
+    string Status)
+{
+    public static SensorSnapshot Unavailable(string status)
+    {
+        return new SensorSnapshot(
+            DateTime.Now,
+            "CPU",
+            "GPU",
+            null, null, null, null,
+            null, null, null, null, null, null,
+            null, null, null,
+            "Armazenamento", null, null,
+            "Ventoinha", null,
+            "Rede", null, null,
+            [], "auto",
+            status);
+    }
+}

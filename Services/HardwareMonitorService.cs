@@ -6,7 +6,7 @@ using PulseWidget.Models;
 
 namespace PulseWidget.Services;
 
-public sealed class HardwareMonitorService : IDisposable
+public sealed class HardwareMonitorService : ISensorMonitor
 {
     private static readonly HardwareType[] GpuTypes =
     [
@@ -226,23 +226,12 @@ public sealed class HardwareMonitorService : IDisposable
 
     private void PublishUnavailable(string status)
     {
-        SnapshotAvailable?.Invoke(this, CreateUnavailableSnapshot(status));
+        SnapshotAvailable?.Invoke(this, SensorSnapshot.Unavailable(status));
     }
 
     private static SensorSnapshot CreateUnavailableSnapshot(string status)
     {
-        return new SensorSnapshot(
-            DateTime.Now,
-            "CPU",
-            "GPU",
-            null, null, null, null,
-            null, null, null, null, null, null,
-            null, null, null,
-            "Armazenamento", null, null,
-            "Ventoinha", null,
-            "Rede", null, null,
-            [], "auto",
-            status);
+        return SensorSnapshot.Unavailable(status);
     }
 
     private static IEnumerable<IHardware> FlattenHardware(IEnumerable<IHardware> hardware)

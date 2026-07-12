@@ -16,7 +16,7 @@ public partial class App : System.Windows.Application
     private readonly SettingsStore _settingsStore = new();
     private readonly AlertEvaluator _alertEvaluator = new();
     private SingleInstanceCoordinator? _singleInstance;
-    private HardwareMonitorService? _monitor;
+    private ISensorMonitor? _monitor;
     private MainWindow? _window;
     private Forms.NotifyIcon? _trayIcon;
     private Forms.ToolStripMenuItem? _clickThroughItem;
@@ -30,6 +30,12 @@ public partial class App : System.Windows.Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        if (SensorHostRunner.IsHostMode(e.Args))
+        {
+            _ = RunSensorHostAsync(e.Args);
+            return;
+        }
 
         _singleInstance = new SingleInstanceCoordinator();
         if (!_singleInstance.IsPrimary)
@@ -46,7 +52,7 @@ public partial class App : System.Windows.Application
 
         _settings = _settingsStore.Load();
         ThemeService.Apply(_settings.Theme);
-        _monitor = new HardwareMonitorService();
+        _monitor = new ElevatedSensorClient();
         _monitor.SetSelectedGpu(_settings.SelectedGpuIdentifier);
         _window = new MainWindow(_settings);
         _monitor.SnapshotAvailable += OnSnapshotAvailable;
@@ -54,6 +60,18 @@ public partial class App : System.Windows.Application
         CreateTrayIcon();
         _window.Show();
         _monitor.Start(_settings.UpdateIntervalMilliseconds);
+    }
+
+    private async Task RunSensorHostAsync(IReadOnlyList<string> arguments)
+    {
+        try
+        {
+            await SensorHostRunner.RunAsync(arguments);
+        }
+        finally
+        {
+            Shutdown();
+        }
     }
 
     private void OnSnapshotAvailable(object? sender, SensorSnapshot snapshot)
