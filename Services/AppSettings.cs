@@ -16,6 +16,12 @@ public sealed class AppSettings
 
     public double WindowOpacity { get; set; } = 0.96;
 
+    public bool CompactMode { get; set; }
+
+    public double NormalWidth { get; set; } = 390;
+
+    public double NormalHeight { get; set; } = 650;
+
     public AppSettings Clone()
     {
         return new AppSettings
@@ -26,7 +32,10 @@ public sealed class AppSettings
             AlwaysOnTop = AlwaysOnTop,
             ClickThrough = ClickThrough,
             UpdateIntervalMilliseconds = UpdateIntervalMilliseconds,
-            WindowOpacity = WindowOpacity
+            WindowOpacity = WindowOpacity,
+            CompactMode = CompactMode,
+            NormalWidth = NormalWidth,
+            NormalHeight = NormalHeight
         };
     }
 }

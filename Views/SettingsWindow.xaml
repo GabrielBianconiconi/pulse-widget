@@ -4,7 +4,7 @@
         Title="Configuracoes do Pulse Widget"
         Icon="/Assets/PulseWidget.ico"
         Width="430"
-        Height="470"
+        Height="510"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="#FF12161D"
@@ -13,6 +13,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="22" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="18" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="18" />
             <RowDefinition Height="Auto" />
@@ -66,9 +68,11 @@
 
         <CheckBox x:Name="ClickThroughCheckBox" Grid.Row="8" Content="Ignorar cliques do mouse" FontFamily="Segoe UI Semibold" />
 
-        <CheckBox x:Name="StartupCheckBox" Grid.Row="10" Content="Iniciar com o Windows" FontFamily="Segoe UI Semibold" />
+        <CheckBox x:Name="CompactModeCheckBox" Grid.Row="10" Content="Usar modo compacto" FontFamily="Segoe UI Semibold" />
 
-        <StackPanel Grid.Row="12" Orientation="Horizontal" HorizontalAlignment="Right">
+        <CheckBox x:Name="StartupCheckBox" Grid.Row="12" Content="Iniciar com o Windows" FontFamily="Segoe UI Semibold" />
+
+        <StackPanel Grid.Row="14" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Cancelar" Width="92" Height="34" Margin="0,0,10,0" IsCancel="True" />
             <Button Content="Aplicar" Width="92" Height="34" IsDefault="True" Click="ApplyButton_Click" />
         </StackPanel>

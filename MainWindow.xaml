@@ -37,10 +37,10 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="10" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="10" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="10" />
-                <RowDefinition Height="*" />
+                <RowDefinition x:Name="BeforeUsageSpacingRow" Height="10" />
+                <RowDefinition x:Name="UsageChartRow" Height="*" />
+                <RowDefinition x:Name="BetweenChartsSpacingRow" Height="10" />
+                <RowDefinition x:Name="TemperatureChartRow" Height="*" />
                 <RowDefinition Height="14" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
@@ -73,6 +73,7 @@
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button x:Name="PinButton" Style="{StaticResource ChromeButton}" Content="PIN" Click="PinButton_Click" shell:WindowChrome.IsHitTestVisibleInChrome="True" />
+                    <Button x:Name="CompactButton" Style="{StaticResource ChromeButton}" Content="CMP" Click="CompactButton_Click" ToolTip="Alternar modo compacto" shell:WindowChrome.IsHitTestVisibleInChrome="True" />
                     <Button Style="{StaticResource ChromeButton}" Content="SET" Click="SettingsButton_Click" ToolTip="Configuracoes" shell:WindowChrome.IsHitTestVisibleInChrome="True" />
                     <Button Style="{StaticResource ChromeButton}" Content="_" Click="HideButton_Click" shell:WindowChrome.IsHitTestVisibleInChrome="True" />
                     <Button x:Name="MaximizeButton" Style="{StaticResource ChromeButton}" Click="MaximizeButton_Click" ToolTip="Maximizar ou restaurar" shell:WindowChrome.IsHitTestVisibleInChrome="True">

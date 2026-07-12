@@ -17,6 +17,7 @@ public partial class MainWindow : Window
     private const int TransparentExtendedStyle = 0x20;
     private bool _clickThrough;
     private bool _allowClose;
+    private bool _compactMode;
 
     public MainWindow(AppSettings settings)
     {
@@ -26,6 +27,7 @@ public partial class MainWindow : Window
         Opacity = settings.WindowOpacity;
         PinButton.Foreground = Topmost ? FindResource("CpuAccent") as Brush : FindResource("MutedText") as Brush;
         SetIntervalLabel(settings.UpdateIntervalMilliseconds);
+        ApplyCompactMode(settings);
 
         if (double.IsNaN(settings.Left) || double.IsNaN(settings.Top))
         {
@@ -43,6 +45,8 @@ public partial class MainWindow : Window
     public event EventHandler? HideRequested;
 
     public event EventHandler? SettingsRequested;
+
+    public event EventHandler<bool>? CompactModeChanged;
 
     public void UpdateSnapshot(SensorSnapshot snapshot)
     {
@@ -105,6 +109,45 @@ public partial class MainWindow : Window
         PinButton.Foreground = Topmost ? FindResource("CpuAccent") as Brush : FindResource("MutedText") as Brush;
         SetIntervalLabel(settings.UpdateIntervalMilliseconds);
         SetClickThrough(settings.ClickThrough);
+        ApplyCompactMode(settings);
+    }
+
+    public void ApplyCompactMode(AppSettings settings)
+    {
+        if (_compactMode == settings.CompactMode && IsLoaded)
+        {
+            return;
+        }
+
+        if (settings.CompactMode)
+        {
+            if (!_compactMode && WindowState == WindowState.Normal)
+            {
+                settings.NormalWidth = Width;
+                settings.NormalHeight = Height;
+            }
+
+            UsageChartRow.Height = new GridLength(0);
+            TemperatureChartRow.Height = new GridLength(0);
+            BeforeUsageSpacingRow.Height = new GridLength(0);
+            BetweenChartsSpacingRow.Height = new GridLength(0);
+            MinHeight = 300;
+            Height = 330;
+            CompactButton.Foreground = FindResource("CpuAccent") as Brush;
+        }
+        else
+        {
+            UsageChartRow.Height = new GridLength(1, GridUnitType.Star);
+            TemperatureChartRow.Height = new GridLength(1, GridUnitType.Star);
+            BeforeUsageSpacingRow.Height = new GridLength(10);
+            BetweenChartsSpacingRow.Height = new GridLength(10);
+            MinHeight = 590;
+            Width = settings.NormalWidth;
+            Height = settings.NormalHeight;
+            CompactButton.Foreground = FindResource("MutedText") as Brush;
+        }
+
+        _compactMode = settings.CompactMode;
     }
 
     public AppSettings CaptureSettings(AppSettings settings)
@@ -114,6 +157,12 @@ public partial class MainWindow : Window
         settings.AlwaysOnTop = Topmost;
         settings.ClickThrough = _clickThrough;
         settings.WindowOpacity = Opacity;
+        settings.CompactMode = _compactMode;
+        if (!_compactMode && WindowState == WindowState.Normal)
+        {
+            settings.NormalWidth = Width;
+            settings.NormalHeight = Height;
+        }
         return settings;
     }
 
@@ -150,6 +199,11 @@ public partial class MainWindow : Window
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
         SettingsRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void CompactButton_Click(object sender, RoutedEventArgs e)
+    {
+        CompactModeChanged?.Invoke(this, !_compactMode);
     }
 
     private void DragArea_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)

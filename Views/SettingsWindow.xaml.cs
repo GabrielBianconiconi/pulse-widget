@@ -17,6 +17,7 @@ public partial class SettingsWindow : Window
         OpacitySlider.Value = settings.WindowOpacity * 100;
         AlwaysOnTopCheckBox.IsChecked = settings.AlwaysOnTop;
         ClickThroughCheckBox.IsChecked = settings.ClickThrough;
+        CompactModeCheckBox.IsChecked = settings.CompactMode;
         StartupCheckBox.IsChecked = startWithWindows;
     }
 
@@ -42,6 +43,7 @@ public partial class SettingsWindow : Window
         Result.WindowOpacity = OpacitySlider.Value / 100;
         Result.AlwaysOnTop = AlwaysOnTopCheckBox.IsChecked == true;
         Result.ClickThrough = ClickThroughCheckBox.IsChecked == true;
+        Result.CompactMode = CompactModeCheckBox.IsChecked == true;
         StartWithWindows = StartupCheckBox.IsChecked == true;
         DialogResult = true;
     }

@@ -20,6 +20,7 @@ public partial class App : System.Windows.Application
     private Forms.NotifyIcon? _trayIcon;
     private Forms.ToolStripMenuItem? _clickThroughItem;
     private Forms.ToolStripMenuItem? _startupItem;
+    private Forms.ToolStripMenuItem? _compactModeItem;
     private AppSettings _settings = new();
     private SettingsWindow? _settingsWindow;
 
@@ -89,6 +90,14 @@ public partial class App : System.Windows.Application
         };
         menu.Items.Add(_clickThroughItem);
 
+        _compactModeItem = new Forms.ToolStripMenuItem("Modo compacto")
+        {
+            Checked = _settings.CompactMode,
+            CheckOnClick = true
+        };
+        _compactModeItem.CheckedChanged += (_, _) => SetCompactMode(_compactModeItem.Checked);
+        menu.Items.Add(_compactModeItem);
+
         var updateMenu = new Forms.ToolStripMenuItem("Intervalo de atualizacao");
         AddIntervalItem(updateMenu, "1 segundo", 1000);
         AddIntervalItem(updateMenu, "2 segundos", 2000);
@@ -121,6 +130,7 @@ public partial class App : System.Windows.Application
             _window.Hide();
         };
         _window.SettingsRequested += (_, _) => ShowSettings();
+        _window.CompactModeChanged += (_, enabled) => SetCompactMode(enabled);
     }
 
     private void AddIntervalItem(Forms.ToolStripMenuItem parent, string text, int milliseconds)
@@ -176,6 +186,10 @@ public partial class App : System.Windows.Application
             _settings = _settingsWindow.Result;
             _monitor?.SetInterval(_settings.UpdateIntervalMilliseconds);
             _window.ApplySettings(_settings);
+            if (_compactModeItem is not null && _compactModeItem.Checked != _settings.CompactMode)
+            {
+                _compactModeItem.Checked = _settings.CompactMode;
+            }
             if (_clickThroughItem is not null)
             {
                 _clickThroughItem.Checked = _settings.ClickThrough;
@@ -191,6 +205,23 @@ public partial class App : System.Windows.Application
         }
 
         _settingsWindow = null;
+    }
+
+    private void SetCompactMode(bool enabled)
+    {
+        if (_window is null)
+        {
+            return;
+        }
+
+        _settings.CompactMode = enabled;
+        _window.ApplyCompactMode(_settings);
+        if (_compactModeItem is not null && _compactModeItem.Checked != enabled)
+        {
+            _compactModeItem.Checked = enabled;
+        }
+
+        SaveSettings();
     }
 
     private async Task ExitApplicationAsync()

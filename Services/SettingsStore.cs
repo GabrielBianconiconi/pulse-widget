@@ -33,6 +33,12 @@ public sealed class SettingsStore
                 ? Math.Clamp(settings.WindowOpacity, 0.55, 1)
                 : 0.96;
             settings.SchemaVersion = 1;
+            settings.NormalWidth = double.IsFinite(settings.NormalWidth)
+                ? Math.Clamp(settings.NormalWidth, 360, 1600)
+                : 390;
+            settings.NormalHeight = double.IsFinite(settings.NormalHeight)
+                ? Math.Clamp(settings.NormalHeight, 590, 1400)
+                : 650;
             return settings;
         }
         catch
