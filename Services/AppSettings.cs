@@ -22,6 +22,12 @@ public sealed class AppSettings
 
     public double NormalHeight { get; set; } = 650;
 
+    public int ChartHistoryMinutes { get; set; } = 2;
+
+    public double CpuTemperatureThreshold { get; set; } = 85;
+
+    public double GpuTemperatureThreshold { get; set; } = 83;
+
     public AppSettings Clone()
     {
         return new AppSettings
@@ -35,7 +41,10 @@ public sealed class AppSettings
             WindowOpacity = WindowOpacity,
             CompactMode = CompactMode,
             NormalWidth = NormalWidth,
-            NormalHeight = NormalHeight
+            NormalHeight = NormalHeight,
+            ChartHistoryMinutes = ChartHistoryMinutes,
+            CpuTemperatureThreshold = CpuTemperatureThreshold,
+            GpuTemperatureThreshold = GpuTemperatureThreshold
         };
     }
 }

@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
+using PulseWidget.Models;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using Color = System.Windows.Media.Color;
@@ -10,36 +11,35 @@ namespace PulseWidget.Controls;
 
 public sealed class LineChart : FrameworkElement
 {
-    private const int Capacity = 120;
-    private readonly double[][] _series = Enumerable.Range(0, 2)
-        .Select(_ => Enumerable.Repeat(double.NaN, Capacity).ToArray())
-        .ToArray();
-    private int _count;
-    private int _nextIndex;
+    private readonly ChartHistory _history = new();
 
     public static readonly DependencyProperty PrimaryStrokeProperty = DependencyProperty.Register(
-        nameof(PrimaryStroke),
-        typeof(Brush),
-        typeof(LineChart),
+        nameof(PrimaryStroke), typeof(Brush), typeof(LineChart),
         new FrameworkPropertyMetadata(Brushes.MediumSpringGreen, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty SecondaryStrokeProperty = DependencyProperty.Register(
-        nameof(SecondaryStroke),
-        typeof(Brush),
-        typeof(LineChart),
+        nameof(SecondaryStroke), typeof(Brush), typeof(LineChart),
         new FrameworkPropertyMetadata(Brushes.DodgerBlue, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty MaximumProperty = DependencyProperty.Register(
-        nameof(Maximum),
-        typeof(double),
-        typeof(LineChart),
+        nameof(Maximum), typeof(double), typeof(LineChart),
         new FrameworkPropertyMetadata(110d, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty DashedProperty = DependencyProperty.Register(
-        nameof(Dashed),
-        typeof(bool),
-        typeof(LineChart),
+        nameof(Dashed), typeof(bool), typeof(LineChart),
         new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty WindowMinutesProperty = DependencyProperty.Register(
+        nameof(WindowMinutes), typeof(int), typeof(LineChart),
+        new FrameworkPropertyMetadata(2, FrameworkPropertyMetadataOptions.AffectsRender, OnWindowChanged));
+
+    public static readonly DependencyProperty PrimaryThresholdProperty = DependencyProperty.Register(
+        nameof(PrimaryThreshold), typeof(double), typeof(LineChart),
+        new FrameworkPropertyMetadata(double.NaN, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty SecondaryThresholdProperty = DependencyProperty.Register(
+        nameof(SecondaryThreshold), typeof(double), typeof(LineChart),
+        new FrameworkPropertyMetadata(double.NaN, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public Brush PrimaryStroke
     {
@@ -65,22 +65,42 @@ public sealed class LineChart : FrameworkElement
         set => SetValue(DashedProperty, value);
     }
 
-    public void AddPoints(double? primary, double? secondary)
+    public int WindowMinutes
     {
-        _series[0][_nextIndex] = primary ?? double.NaN;
-        _series[1][_nextIndex] = secondary ?? double.NaN;
-        _nextIndex = (_nextIndex + 1) % Capacity;
-        _count = Math.Min(Capacity, _count + 1);
+        get => (int)GetValue(WindowMinutesProperty);
+        set => SetValue(WindowMinutesProperty, value);
+    }
+
+    public double PrimaryThreshold
+    {
+        get => (double)GetValue(PrimaryThresholdProperty);
+        set => SetValue(PrimaryThresholdProperty, value);
+    }
+
+    public double SecondaryThreshold
+    {
+        get => (double)GetValue(SecondaryThresholdProperty);
+        set => SetValue(SecondaryThresholdProperty, value);
+    }
+
+    public void AddPoints(DateTime timestamp, double? primary, double? secondary)
+    {
+        _history.Append(timestamp, primary, secondary);
+        InvalidateVisual();
+    }
+
+    public SeriesStatistics GetStatistics(bool primary) => _history.GetStatistics(primary);
+
+    public void Clear()
+    {
+        _history.Clear();
         InvalidateVisual();
     }
 
     protected override void OnRender(DrawingContext drawingContext)
     {
         base.OnRender(drawingContext);
-
-        var width = ActualWidth;
-        var height = ActualHeight;
-        if (width <= 1 || height <= 1)
+        if (ActualWidth <= 1 || ActualHeight <= 1 || !double.IsFinite(Maximum) || Maximum <= 0)
         {
             return;
         }
@@ -89,50 +109,67 @@ public sealed class LineChart : FrameworkElement
         gridBrush.Freeze();
         var gridPen = new Pen(gridBrush, 1);
         gridPen.Freeze();
-        foreach (var value in new[] { 25d, 50d, 75d, 100d })
+        foreach (var ratio in new[] { 0.25, 0.5, 0.75, 1.0 })
         {
-            var y = height - value / Maximum * height;
-            drawingContext.DrawLine(gridPen, new Point(0, y), new Point(width, y));
+            var y = ActualHeight - ratio * ActualHeight;
+            drawingContext.DrawLine(gridPen, new Point(0, y), new Point(ActualWidth, y));
         }
 
-        if (_count < 2 || Maximum <= 0)
+        DrawThreshold(drawingContext, PrimaryThreshold, PrimaryStroke);
+        DrawThreshold(drawingContext, SecondaryThreshold, SecondaryStroke);
+
+        if (_history.Samples.Count == 0)
         {
             return;
         }
 
-        DrawSeries(drawingContext, _series[0], PrimaryStroke, Dashed);
-        DrawSeries(drawingContext, _series[1], SecondaryStroke, Dashed);
+        DrawSeries(drawingContext, true, PrimaryStroke);
+        DrawSeries(drawingContext, false, SecondaryStroke);
     }
 
-    private void DrawSeries(DrawingContext drawingContext, double[] points, Brush stroke, bool dashed)
+    private void DrawThreshold(DrawingContext context, double threshold, Brush stroke)
     {
-        var width = ActualWidth;
-        var height = ActualHeight;
-        var lineGeometry = new StreamGeometry();
+        if (!double.IsFinite(threshold) || threshold < 0 || threshold > Maximum)
+        {
+            return;
+        }
+
+        var y = ActualHeight - threshold / Maximum * ActualHeight;
+        var thresholdBrush = stroke.Clone();
+        thresholdBrush.Opacity = 0.45;
+        var pen = new Pen(thresholdBrush, 1) { DashStyle = new DashStyle([2, 4], 0) };
+        context.DrawLine(pen, new Point(0, y), new Point(ActualWidth, y));
+    }
+
+    private void DrawSeries(DrawingContext drawingContext, bool primary, Brush stroke)
+    {
+        var samples = _history.Samples;
+        var latest = samples[^1].Timestamp;
+        var start = latest - TimeSpan.FromMinutes(WindowMinutes);
+        var windowTicks = Math.Max(1, (latest - start).Ticks);
+        var geometry = new StreamGeometry();
         var lastPoint = default(Point);
         var hasPoint = false;
-        var hasActiveFigure = false;
+        var activeFigure = false;
 
-        using (var line = lineGeometry.Open())
+        using (var line = geometry.Open())
         {
-            for (var index = 0; index < _count; index++)
+            foreach (var sample in samples)
             {
-                var bufferIndex = (_nextIndex - _count + index + Capacity) % Capacity;
-                var value = points[bufferIndex];
-                if (double.IsNaN(value))
+                var value = primary ? sample.Primary : sample.Secondary;
+                if (!value.HasValue)
                 {
-                    hasActiveFigure = false;
+                    activeFigure = false;
                     continue;
                 }
 
-                var x = index * width / (Capacity - 1);
-                var y = height - Math.Clamp(value / Maximum, 0, 1) * height;
+                var x = Math.Clamp((sample.Timestamp - start).Ticks / (double)windowTicks, 0, 1) * ActualWidth;
+                var y = ActualHeight - Math.Clamp(value.Value / Maximum, 0, 1) * ActualHeight;
                 var point = new Point(x, y);
-
-                if (!hasActiveFigure)
+                if (!activeFigure)
                 {
                     line.BeginFigure(point, false, false);
-                    hasActiveFigure = true;
+                    activeFigure = true;
                 }
                 else
                 {
@@ -144,19 +181,24 @@ public sealed class LineChart : FrameworkElement
             }
         }
 
-        lineGeometry.Freeze();
-        var linePen = new Pen(stroke, dashed ? 1.7 : 2.2);
-        if (dashed)
+        geometry.Freeze();
+        var pen = new Pen(stroke, Dashed ? 1.7 : 2.2);
+        if (Dashed)
         {
-            linePen.DashStyle = new DashStyle([4, 3], 0);
+            pen.DashStyle = new DashStyle([4, 3], 0);
         }
 
-        drawingContext.DrawGeometry(null, linePen, lineGeometry);
-
+        drawingContext.DrawGeometry(null, pen, geometry);
         if (hasPoint)
         {
-            var radius = dashed ? 2.3 : 3;
+            var radius = Dashed ? 2.3 : 3;
             drawingContext.DrawEllipse(stroke, null, lastPoint, radius, radius);
         }
+    }
+
+    private static void OnWindowChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)
+    {
+        var chart = (LineChart)dependencyObject;
+        chart._history.Window = TimeSpan.FromMinutes(Math.Clamp((int)args.NewValue, 1, 60));
     }
 }

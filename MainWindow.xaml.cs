@@ -27,6 +27,7 @@ public partial class MainWindow : Window
         Opacity = settings.WindowOpacity;
         PinButton.Foreground = Topmost ? FindResource("CpuAccent") as Brush : FindResource("MutedText") as Brush;
         SetIntervalLabel(settings.UpdateIntervalMilliseconds);
+        ApplyChartSettings(settings);
         ApplyCompactMode(settings);
 
         if (double.IsNaN(settings.Left) || double.IsNaN(settings.Top))
@@ -65,12 +66,14 @@ public partial class MainWindow : Window
             ? $"{snapshot.MemoryUsedGb:0.0} / {totalMemory:0.0} GB"
             : "-- / -- GB";
 
-        UsageChart.AddPoints(snapshot.CpuUsage, snapshot.GpuUsage);
-        TemperatureChart.AddPoints(snapshot.CpuTemperature, snapshot.GpuTemperature);
+        UsageChart.AddPoints(snapshot.Timestamp, snapshot.CpuUsage, snapshot.GpuUsage);
+        TemperatureChart.AddPoints(snapshot.Timestamp, snapshot.CpuTemperature, snapshot.GpuTemperature);
         CpuUsageLegendValue.Text = FormatValue(snapshot.CpuUsage, "0", "%");
         CpuTemperatureLegendValue.Text = FormatValue(snapshot.CpuTemperature, "0", " C");
         GpuUsageLegendValue.Text = FormatValue(snapshot.GpuUsage, "0", "%");
         GpuTemperatureLegendValue.Text = FormatValue(snapshot.GpuTemperature, "0", " C");
+        UsageStatsText.Text = FormatStatistics(UsageChart.GetStatistics(true), UsageChart.GetStatistics(false));
+        TemperatureStatsText.Text = FormatStatistics(TemperatureChart.GetStatistics(true), TemperatureChart.GetStatistics(false));
 
         var extra = BuildExtraStatus(snapshot);
         StatusText.Text = string.IsNullOrEmpty(extra) ? snapshot.Status : $"{snapshot.Status}  |  {extra}";
@@ -110,6 +113,17 @@ public partial class MainWindow : Window
         SetIntervalLabel(settings.UpdateIntervalMilliseconds);
         SetClickThrough(settings.ClickThrough);
         ApplyCompactMode(settings);
+        ApplyChartSettings(settings);
+    }
+
+    private void ApplyChartSettings(AppSettings settings)
+    {
+        UsageChart.WindowMinutes = settings.ChartHistoryMinutes;
+        TemperatureChart.WindowMinutes = settings.ChartHistoryMinutes;
+        TemperatureChart.PrimaryThreshold = settings.CpuTemperatureThreshold;
+        TemperatureChart.SecondaryThreshold = settings.GpuTemperatureThreshold;
+        UsageChartTitle.Text = $"USO / ULTIMOS {settings.ChartHistoryMinutes} MIN";
+        TemperatureChartTitle.Text = $"TEMPERATURA / ULTIMOS {settings.ChartHistoryMinutes} MIN";
     }
 
     public void ApplyCompactMode(AppSettings settings)
@@ -288,6 +302,14 @@ public partial class MainWindow : Window
     {
         return value.HasValue ? value.Value.ToString(format) : "--";
     }
+
+    private static string FormatStatistics(SeriesStatistics primary, SeriesStatistics secondary)
+    {
+        return $"CPU min/med/max {FormatStat(primary.Minimum)}/{FormatStat(primary.Average)}/{FormatStat(primary.Maximum)}   " +
+               $"GPU {FormatStat(secondary.Minimum)}/{FormatStat(secondary.Average)}/{FormatStat(secondary.Maximum)}";
+    }
+
+    private static string FormatStat(double? value) => value.HasValue ? value.Value.ToString("0") : "--";
 
     [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
     private static extern int GetWindowLong(nint windowHandle, int index);

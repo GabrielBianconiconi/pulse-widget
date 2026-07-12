@@ -15,6 +15,9 @@ public partial class SettingsWindow : Window
             .OfType<ComboBoxItem>()
             .First(item => int.Parse(item.Tag.ToString()!) == settings.UpdateIntervalMilliseconds);
         OpacitySlider.Value = settings.WindowOpacity * 100;
+        HistoryComboBox.SelectedItem = HistoryComboBox.Items
+            .OfType<ComboBoxItem>()
+            .First(item => int.Parse(item.Tag.ToString()!) == settings.ChartHistoryMinutes);
         AlwaysOnTopCheckBox.IsChecked = settings.AlwaysOnTop;
         ClickThroughCheckBox.IsChecked = settings.ClickThrough;
         CompactModeCheckBox.IsChecked = settings.CompactMode;
@@ -41,6 +44,10 @@ public partial class SettingsWindow : Window
         }
 
         Result.WindowOpacity = OpacitySlider.Value / 100;
+        if (HistoryComboBox.SelectedItem is ComboBoxItem historyItem)
+        {
+            Result.ChartHistoryMinutes = int.Parse(historyItem.Tag.ToString()!);
+        }
         Result.AlwaysOnTop = AlwaysOnTopCheckBox.IsChecked == true;
         Result.ClickThrough = ClickThroughCheckBox.IsChecked == true;
         Result.CompactMode = CompactModeCheckBox.IsChecked == true;

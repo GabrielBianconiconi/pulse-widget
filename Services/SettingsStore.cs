@@ -39,6 +39,11 @@ public sealed class SettingsStore
             settings.NormalHeight = double.IsFinite(settings.NormalHeight)
                 ? Math.Clamp(settings.NormalHeight, 590, 1400)
                 : 650;
+            settings.ChartHistoryMinutes = settings.ChartHistoryMinutes is 2 or 5 or 15 or 30
+                ? settings.ChartHistoryMinutes
+                : 2;
+            settings.CpuTemperatureThreshold = Math.Clamp(settings.CpuTemperatureThreshold, 60, 105);
+            settings.GpuTemperatureThreshold = Math.Clamp(settings.GpuTemperatureThreshold, 55, 105);
             return settings;
         }
         catch

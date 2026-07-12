@@ -164,7 +164,7 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <DockPanel Margin="0,0,0,8">
-                        <TextBlock Text="USO / ULTIMOS 2 MIN" FontSize="10" Foreground="{StaticResource MutedText}" />
+                        <TextBlock x:Name="UsageChartTitle" Text="USO / ULTIMOS 2 MIN" FontSize="10" Foreground="{StaticResource MutedText}" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <TextBlock Text="CPU " FontSize="9" Foreground="{StaticResource MutedText}" />
                             <TextBlock x:Name="CpuUsageLegendValue" Text="--%" FontSize="10" Foreground="{StaticResource CpuAccent}" Margin="0,0,10,0" />
@@ -172,12 +172,20 @@
                             <TextBlock x:Name="GpuUsageLegendValue" Text="--%" FontSize="10" Foreground="{StaticResource GpuAccent}" />
                         </StackPanel>
                     </DockPanel>
-                    <controls:LineChart x:Name="UsageChart"
-                                        Grid.Row="1"
-                                        MinHeight="70"
-                                        PrimaryStroke="{StaticResource CpuAccent}"
-                                        SecondaryStroke="{StaticResource GpuAccent}"
-                                        Maximum="100" />
+                    <Grid Grid.Row="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <controls:LineChart x:Name="UsageChart"
+                                            MinHeight="60"
+                                            PrimaryStroke="{StaticResource CpuAccent}"
+                                            SecondaryStroke="{StaticResource GpuAccent}"
+                                            PrimaryThreshold="90"
+                                            SecondaryThreshold="90"
+                                            Maximum="100" />
+                        <TextBlock x:Name="UsageStatsText" Grid.Row="1" Margin="0,5,0,0" FontSize="9" Foreground="{StaticResource MutedText}" />
+                    </Grid>
                 </Grid>
             </Border>
 
@@ -188,7 +196,7 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <DockPanel Margin="0,0,0,8">
-                        <TextBlock Text="TEMPERATURA / ULTIMOS 2 MIN" FontSize="10" Foreground="{StaticResource MutedText}" />
+                        <TextBlock x:Name="TemperatureChartTitle" Text="TEMPERATURA / ULTIMOS 2 MIN" FontSize="10" Foreground="{StaticResource MutedText}" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <TextBlock Text="CPU " FontSize="9" Foreground="{StaticResource MutedText}" />
                             <TextBlock x:Name="CpuTemperatureLegendValue" Text="-- C" FontSize="10" Foreground="#FFA8F07A" Margin="0,0,10,0" />
@@ -196,13 +204,19 @@
                             <TextBlock x:Name="GpuTemperatureLegendValue" Text="-- C" FontSize="10" Foreground="#FF73E1F4" />
                         </StackPanel>
                     </DockPanel>
-                    <controls:LineChart x:Name="TemperatureChart"
-                                        Grid.Row="1"
-                                        MinHeight="70"
-                                        PrimaryStroke="#FFA8F07A"
-                                        SecondaryStroke="#FF73E1F4"
-                                        Dashed="True"
-                                        Maximum="110" />
+                    <Grid Grid.Row="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <controls:LineChart x:Name="TemperatureChart"
+                                            MinHeight="60"
+                                            PrimaryStroke="#FFA8F07A"
+                                            SecondaryStroke="#FF73E1F4"
+                                            Dashed="True"
+                                            Maximum="110" />
+                        <TextBlock x:Name="TemperatureStatsText" Grid.Row="1" Margin="0,5,0,0" FontSize="9" Foreground="{StaticResource MutedText}" />
+                    </Grid>
                 </Grid>
             </Border>
 

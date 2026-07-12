@@ -4,7 +4,7 @@
         Title="Configuracoes do Pulse Widget"
         Icon="/Assets/PulseWidget.ico"
         Width="430"
-        Height="510"
+        Height="570"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="#FF12161D"
@@ -13,6 +13,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="22" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="18" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="18" />
             <RowDefinition Height="Auto" />
@@ -64,15 +66,32 @@
             </StackPanel>
         </Grid>
 
-        <CheckBox x:Name="AlwaysOnTopCheckBox" Grid.Row="6" Content="Manter sempre no topo" FontFamily="Segoe UI Semibold" />
+        <Grid Grid.Row="6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="155" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="Historico dos graficos" FontFamily="Segoe UI Semibold" />
+                <TextBlock Text="Janela de tempo mantida em memoria" FontSize="11" Foreground="#FF83909F" />
+            </StackPanel>
+            <ComboBox x:Name="HistoryComboBox" Grid.Column="1" Height="32" VerticalContentAlignment="Center">
+                <ComboBoxItem Content="2 minutos" Tag="2" />
+                <ComboBoxItem Content="5 minutos" Tag="5" />
+                <ComboBoxItem Content="15 minutos" Tag="15" />
+                <ComboBoxItem Content="30 minutos" Tag="30" />
+            </ComboBox>
+        </Grid>
 
-        <CheckBox x:Name="ClickThroughCheckBox" Grid.Row="8" Content="Ignorar cliques do mouse" FontFamily="Segoe UI Semibold" />
+        <CheckBox x:Name="AlwaysOnTopCheckBox" Grid.Row="8" Content="Manter sempre no topo" FontFamily="Segoe UI Semibold" />
 
-        <CheckBox x:Name="CompactModeCheckBox" Grid.Row="10" Content="Usar modo compacto" FontFamily="Segoe UI Semibold" />
+        <CheckBox x:Name="ClickThroughCheckBox" Grid.Row="10" Content="Ignorar cliques do mouse" FontFamily="Segoe UI Semibold" />
 
-        <CheckBox x:Name="StartupCheckBox" Grid.Row="12" Content="Iniciar com o Windows" FontFamily="Segoe UI Semibold" />
+        <CheckBox x:Name="CompactModeCheckBox" Grid.Row="12" Content="Usar modo compacto" FontFamily="Segoe UI Semibold" />
 
-        <StackPanel Grid.Row="14" Orientation="Horizontal" HorizontalAlignment="Right">
+        <CheckBox x:Name="StartupCheckBox" Grid.Row="14" Content="Iniciar com o Windows" FontFamily="Segoe UI Semibold" />
+
+        <StackPanel Grid.Row="16" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Cancelar" Width="92" Height="34" Margin="0,0,10,0" IsCancel="True" />
             <Button Content="Aplicar" Width="92" Height="34" IsDefault="True" Click="ApplyButton_Click" />
         </StackPanel>
