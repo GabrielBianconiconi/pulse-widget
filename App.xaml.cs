@@ -24,6 +24,8 @@ public partial class App : System.Windows.Application
     private Forms.ToolStripMenuItem? _compactModeItem;
     private AppSettings _settings = new();
     private SettingsWindow? _settingsWindow;
+    private DiagnosticsWindow? _diagnosticsWindow;
+    private SensorSnapshot? _latestSnapshot;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -44,6 +46,7 @@ public partial class App : System.Windows.Application
 
         _settings = _settingsStore.Load();
         _monitor = new HardwareMonitorService();
+        _monitor.SetSelectedGpu(_settings.SelectedGpuIdentifier);
         _window = new MainWindow(_settings);
         _monitor.SnapshotAvailable += OnSnapshotAvailable;
 
@@ -70,6 +73,7 @@ public partial class App : System.Windows.Application
         }
 
         _window.UpdateSnapshot(snapshot);
+        _latestSnapshot = snapshot;
         _window.SetTemperatureWarning(
             _settings.AlertsEnabled && snapshot.CpuTemperature >= _settings.CpuTemperatureThreshold,
             _settings.AlertsEnabled && snapshot.GpuTemperature >= _settings.GpuTemperatureThreshold);
@@ -94,6 +98,7 @@ public partial class App : System.Windows.Application
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add("Mostrar widget", null, (_, _) => ShowWidget());
         menu.Items.Add("Configuracoes...", null, (_, _) => Dispatcher.BeginInvoke(ShowSettings));
+        menu.Items.Add("Diagnostico...", null, (_, _) => Dispatcher.BeginInvoke(ShowDiagnostics));
 
         _clickThroughItem = new Forms.ToolStripMenuItem("Ignorar cliques")
         {
@@ -203,11 +208,12 @@ public partial class App : System.Windows.Application
             return;
         }
 
-        _settingsWindow = new SettingsWindow(_settings, IsStartupEnabled()) { Owner = _window };
+        _settingsWindow = new SettingsWindow(_settings, IsStartupEnabled(), _latestSnapshot?.AvailableGpus ?? []) { Owner = _window };
         if (_settingsWindow.ShowDialog() == true)
         {
             _settings = _settingsWindow.Result;
             _monitor?.SetInterval(_settings.UpdateIntervalMilliseconds);
+            _monitor?.SetSelectedGpu(_settings.SelectedGpuIdentifier);
             _window.ApplySettings(_settings);
             if (_compactModeItem is not null && _compactModeItem.Checked != _settings.CompactMode)
             {
@@ -228,6 +234,24 @@ public partial class App : System.Windows.Application
         }
 
         _settingsWindow = null;
+    }
+
+    private void ShowDiagnostics()
+    {
+        if (_window is null || _monitor is null)
+        {
+            return;
+        }
+
+        if (_diagnosticsWindow is not null)
+        {
+            _diagnosticsWindow.Activate();
+            return;
+        }
+
+        _diagnosticsWindow = new DiagnosticsWindow(_monitor.GetDiagnosticsReport()) { Owner = _window };
+        _diagnosticsWindow.Closed += (_, _) => _diagnosticsWindow = null;
+        _diagnosticsWindow.Show();
     }
 
     private void SetCompactMode(bool enabled)

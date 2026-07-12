@@ -1,4 +1,6 @@
 using System.Runtime.InteropServices;
+using System.Security.Principal;
+using System.Text;
 using LibreHardwareMonitor.Hardware;
 using PulseWidget.Models;
 
@@ -29,6 +31,10 @@ public sealed class HardwareMonitorService : IDisposable
     private int _intervalMilliseconds = 1000;
     private int _sampleCount;
     private bool _computerOpened;
+    private string _selectedGpuIdentifier = "auto";
+    private string? _autoSelectedGpuIdentifier;
+    private readonly object _diagnosticsLock = new();
+    private string _diagnosticsReport = "Aguardando a primeira leitura de sensores.";
 
     public event EventHandler<SensorSnapshot>? SnapshotAvailable;
 
@@ -47,6 +53,19 @@ public sealed class HardwareMonitorService : IDisposable
     public void SetInterval(int intervalMilliseconds)
     {
         Interlocked.Exchange(ref _intervalMilliseconds, Math.Clamp(intervalMilliseconds, 500, 10_000));
+    }
+
+    public void SetSelectedGpu(string? identifier)
+    {
+        Interlocked.Exchange(ref _selectedGpuIdentifier, string.IsNullOrWhiteSpace(identifier) ? "auto" : identifier);
+    }
+
+    public string GetDiagnosticsReport()
+    {
+        lock (_diagnosticsLock)
+        {
+            return _diagnosticsReport;
+        }
     }
 
     public async Task StopAsync()
@@ -121,9 +140,23 @@ public sealed class HardwareMonitorService : IDisposable
         var storageHardware = hardware.Where(item => item.HardwareType == HardwareType.Storage).ToArray();
         var networkHardware = hardware.Where(item => item.HardwareType == HardwareType.Network).ToArray();
 
-        var selectedGpu = gpuHardware
-            .OrderByDescending(item => PreferredValue([item], SensorType.Load, "GPU Core", "D3D 3D") ?? -1)
-            .FirstOrDefault();
+        var availableGpus = gpuHardware
+            .Select(item => new GpuDescriptor(item.Identifier.ToString(), item.Name))
+            .ToArray();
+        var requestedGpuIdentifier = Volatile.Read(ref _selectedGpuIdentifier);
+        var selectedGpu = requestedGpuIdentifier == "auto"
+            ? gpuHardware.FirstOrDefault(item => item.Identifier.ToString() == _autoSelectedGpuIdentifier)
+            : gpuHardware.FirstOrDefault(item => item.Identifier.ToString() == requestedGpuIdentifier);
+        if (selectedGpu is null)
+        {
+            selectedGpu = gpuHardware
+                .OrderByDescending(item => PreferredValue([item], SensorType.Load, "GPU Core", "D3D 3D") ?? -1)
+                .FirstOrDefault();
+            if (requestedGpuIdentifier == "auto")
+            {
+                _autoSelectedGpuIdentifier = selectedGpu?.Identifier.ToString();
+            }
+        }
         var selectedGpuArray = selectedGpu is null ? [] : new[] { selectedGpu };
 
         var cpuUsage = PreferredValue(cpuHardware, SensorType.Load, "CPU Total");
@@ -155,7 +188,7 @@ public sealed class HardwareMonitorService : IDisposable
             : hasCoreMetrics
                 ? "Monitorando"
                 : "Execute como administrador para acessar mais sensores";
-        return new SensorSnapshot(
+        var snapshot = new SensorSnapshot(
             DateTime.Now,
             cpuHardware.FirstOrDefault()?.Name ?? "CPU",
             selectedGpu?.Name ?? "GPU nao detectada",
@@ -180,7 +213,15 @@ public sealed class HardwareMonitorService : IDisposable
             selectedNetwork?.Name ?? "Rede",
             NamedValue(selectedNetworkArray, SensorType.Throughput, "Download Speed", "Download"),
             NamedValue(selectedNetworkArray, SensorType.Throughput, "Upload Speed", "Upload"),
+            availableGpus,
+            selectedGpu?.Identifier.ToString() ?? "auto",
             status);
+        if (updateSlowSensors)
+        {
+            UpdateDiagnostics(hardware, snapshot);
+        }
+
+        return snapshot;
     }
 
     private void PublishUnavailable(string status)
@@ -200,6 +241,7 @@ public sealed class HardwareMonitorService : IDisposable
             "Armazenamento", null, null,
             "Ventoinha", null,
             "Rede", null, null,
+            [], "auto",
             status);
     }
 
@@ -339,6 +381,31 @@ public sealed class HardwareMonitorService : IDisposable
             .OrderByDescending(item => item.Sensor.Value)
             .FirstOrDefault();
         return maximum.Sensor is null ? null : maximum;
+    }
+
+    private void UpdateDiagnostics(IEnumerable<IHardware> hardware, SensorSnapshot snapshot)
+    {
+        var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
+        var builder = new StringBuilder()
+            .AppendLine("Pulse Widget - diagnostico de hardware")
+            .AppendLine($"Gerado em: {snapshot.Timestamp:yyyy-MM-dd HH:mm:ss}")
+            .AppendLine($"Elevado: {principal.IsInRole(WindowsBuiltInRole.Administrator)}")
+            .AppendLine($"GPU selecionada: {snapshot.GpuName} ({snapshot.SelectedGpuIdentifier})")
+            .AppendLine();
+
+        foreach (var item in hardware)
+        {
+            builder.AppendLine($"[{item.HardwareType}] {item.Name} | {item.Identifier}");
+            foreach (var sensor in item.Sensors.OrderBy(sensor => sensor.SensorType).ThenBy(sensor => sensor.Name))
+            {
+                builder.AppendLine($"  {sensor.SensorType,-12} {sensor.Name,-32} {sensor.Value?.ToString() ?? "--"}");
+            }
+        }
+
+        lock (_diagnosticsLock)
+        {
+            _diagnosticsReport = builder.ToString();
+        }
     }
 
     private static double? MaximumValue(IEnumerable<IHardware> hardware, SensorType sensorType)

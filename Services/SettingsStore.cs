@@ -47,6 +47,9 @@ public sealed class SettingsStore
             settings.AlertDurationSeconds = Math.Clamp(settings.AlertDurationSeconds, 3, 120);
             settings.AlertCooldownMinutes = Math.Clamp(settings.AlertCooldownMinutes, 1, 120);
             settings.AlertHysteresisDegrees = Math.Clamp(settings.AlertHysteresisDegrees, 2, 15);
+            settings.SelectedGpuIdentifier = string.IsNullOrWhiteSpace(settings.SelectedGpuIdentifier)
+                ? "auto"
+                : settings.SelectedGpuIdentifier;
             return settings;
         }
         catch

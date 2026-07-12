@@ -36,6 +36,8 @@ public sealed class AppSettings
 
     public double AlertHysteresisDegrees { get; set; } = 5;
 
+    public string SelectedGpuIdentifier { get; set; } = "auto";
+
     public AppSettings Clone()
     {
         return new AppSettings
@@ -56,7 +58,8 @@ public sealed class AppSettings
             AlertsEnabled = AlertsEnabled,
             AlertDurationSeconds = AlertDurationSeconds,
             AlertCooldownMinutes = AlertCooldownMinutes,
-            AlertHysteresisDegrees = AlertHysteresisDegrees
+            AlertHysteresisDegrees = AlertHysteresisDegrees,
+            SelectedGpuIdentifier = SelectedGpuIdentifier
         };
     }
 }

@@ -25,4 +25,6 @@ public sealed record SensorSnapshot(
     string NetworkName,
     double? NetworkDownloadBytes,
     double? NetworkUploadBytes,
+    IReadOnlyList<GpuDescriptor> AvailableGpus,
+    string SelectedGpuIdentifier,
     string Status);

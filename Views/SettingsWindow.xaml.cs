@@ -1,12 +1,13 @@
 using System.Windows;
 using System.Windows.Controls;
+using PulseWidget.Models;
 using PulseWidget.Services;
 
 namespace PulseWidget.Views;
 
 public partial class SettingsWindow : Window
 {
-    public SettingsWindow(AppSettings settings, bool startWithWindows)
+    public SettingsWindow(AppSettings settings, bool startWithWindows, IReadOnlyList<GpuDescriptor> availableGpus)
     {
         InitializeComponent();
         Result = settings.Clone();
@@ -18,6 +19,11 @@ public partial class SettingsWindow : Window
         HistoryComboBox.SelectedItem = HistoryComboBox.Items
             .OfType<ComboBoxItem>()
             .First(item => int.Parse(item.Tag.ToString()!) == settings.ChartHistoryMinutes);
+        var gpuOptions = new List<GpuOption> { new("auto", "Automatico") };
+        gpuOptions.AddRange(availableGpus.Select(gpu => new GpuOption(gpu.Identifier, gpu.Name)));
+        GpuComboBox.ItemsSource = gpuOptions;
+        GpuComboBox.SelectedItem = gpuOptions.FirstOrDefault(gpu => gpu.Identifier == settings.SelectedGpuIdentifier)
+                                   ?? gpuOptions[0];
         AlwaysOnTopCheckBox.IsChecked = settings.AlwaysOnTop;
         ClickThroughCheckBox.IsChecked = settings.ClickThrough;
         CompactModeCheckBox.IsChecked = settings.CompactMode;
@@ -47,6 +53,10 @@ public partial class SettingsWindow : Window
         }
 
         Result.WindowOpacity = OpacitySlider.Value / 100;
+        if (GpuComboBox.SelectedItem is GpuOption gpuOption)
+        {
+            Result.SelectedGpuIdentifier = gpuOption.Identifier;
+        }
         if (HistoryComboBox.SelectedItem is ComboBoxItem historyItem)
         {
             Result.ChartHistoryMinutes = int.Parse(historyItem.Tag.ToString()!);
@@ -68,4 +78,6 @@ public partial class SettingsWindow : Window
         StartWithWindows = StartupCheckBox.IsChecked == true;
         DialogResult = true;
     }
+
+    private sealed record GpuOption(string Identifier, string Name);
 }
