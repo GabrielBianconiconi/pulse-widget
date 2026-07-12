@@ -73,6 +73,7 @@
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button x:Name="PinButton" Style="{StaticResource ChromeButton}" Content="PIN" Click="PinButton_Click" shell:WindowChrome.IsHitTestVisibleInChrome="True" />
+                    <Button Style="{StaticResource ChromeButton}" Content="SET" Click="SettingsButton_Click" ToolTip="Configuracoes" shell:WindowChrome.IsHitTestVisibleInChrome="True" />
                     <Button Style="{StaticResource ChromeButton}" Content="_" Click="HideButton_Click" shell:WindowChrome.IsHitTestVisibleInChrome="True" />
                     <Button x:Name="MaximizeButton" Style="{StaticResource ChromeButton}" Click="MaximizeButton_Click" ToolTip="Maximizar ou restaurar" shell:WindowChrome.IsHitTestVisibleInChrome="True">
                         <Path Width="10" Height="10" Stretch="Fill" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.2">

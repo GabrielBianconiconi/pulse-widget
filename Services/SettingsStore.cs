@@ -29,6 +29,10 @@ public sealed class SettingsStore
             settings.UpdateIntervalMilliseconds = settings.UpdateIntervalMilliseconds is 1000 or 2000 or 5000
                 ? settings.UpdateIntervalMilliseconds
                 : 1000;
+            settings.WindowOpacity = double.IsFinite(settings.WindowOpacity)
+                ? Math.Clamp(settings.WindowOpacity, 0.55, 1)
+                : 0.96;
+            settings.SchemaVersion = 1;
             return settings;
         }
         catch
@@ -42,7 +46,9 @@ public sealed class SettingsStore
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_settingsPath)!);
-            File.WriteAllText(_settingsPath, JsonSerializer.Serialize(settings, JsonOptions));
+            var temporaryPath = _settingsPath + ".tmp";
+            File.WriteAllText(temporaryPath, JsonSerializer.Serialize(settings, JsonOptions));
+            File.Move(temporaryPath, _settingsPath, true);
         }
         catch
         {

@@ -3,6 +3,7 @@ using System.Windows;
 using Microsoft.Win32;
 using PulseWidget.Models;
 using PulseWidget.Services;
+using PulseWidget.Views;
 using Forms = System.Windows.Forms;
 
 namespace PulseWidget;
@@ -20,6 +21,7 @@ public partial class App : System.Windows.Application
     private Forms.ToolStripMenuItem? _clickThroughItem;
     private Forms.ToolStripMenuItem? _startupItem;
     private AppSettings _settings = new();
+    private SettingsWindow? _settingsWindow;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -67,6 +69,7 @@ public partial class App : System.Windows.Application
 
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add("Mostrar widget", null, (_, _) => ShowWidget());
+        menu.Items.Add("Configuracoes...", null, (_, _) => Dispatcher.BeginInvoke(ShowSettings));
 
         _clickThroughItem = new Forms.ToolStripMenuItem("Ignorar cliques")
         {
@@ -117,6 +120,7 @@ public partial class App : System.Windows.Application
             SaveSettings();
             _window.Hide();
         };
+        _window.SettingsRequested += (_, _) => ShowSettings();
     }
 
     private void AddIntervalItem(Forms.ToolStripMenuItem parent, string text, int milliseconds)
@@ -151,6 +155,42 @@ public partial class App : System.Windows.Application
 
         _window.Show();
         _window.Activate();
+    }
+
+    private void ShowSettings()
+    {
+        if (_window is null)
+        {
+            return;
+        }
+
+        if (_settingsWindow is not null)
+        {
+            _settingsWindow.Activate();
+            return;
+        }
+
+        _settingsWindow = new SettingsWindow(_settings, IsStartupEnabled()) { Owner = _window };
+        if (_settingsWindow.ShowDialog() == true)
+        {
+            _settings = _settingsWindow.Result;
+            _monitor?.SetInterval(_settings.UpdateIntervalMilliseconds);
+            _window.ApplySettings(_settings);
+            if (_clickThroughItem is not null)
+            {
+                _clickThroughItem.Checked = _settings.ClickThrough;
+            }
+
+            if (_startupItem is not null && _startupItem.Checked != _settingsWindow.StartWithWindows)
+            {
+                _startupItem.Checked = _settingsWindow.StartWithWindows;
+            }
+
+            SetStartup(_settingsWindow.StartWithWindows);
+            SaveSettings();
+        }
+
+        _settingsWindow = null;
     }
 
     private async Task ExitApplicationAsync()

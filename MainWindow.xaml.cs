@@ -23,6 +23,7 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         Topmost = settings.AlwaysOnTop;
+        Opacity = settings.WindowOpacity;
         PinButton.Foreground = Topmost ? FindResource("CpuAccent") as Brush : FindResource("MutedText") as Brush;
         SetIntervalLabel(settings.UpdateIntervalMilliseconds);
 
@@ -40,6 +41,8 @@ public partial class MainWindow : Window
     }
 
     public event EventHandler? HideRequested;
+
+    public event EventHandler? SettingsRequested;
 
     public void UpdateSnapshot(SensorSnapshot snapshot)
     {
@@ -95,12 +98,22 @@ public partial class MainWindow : Window
         SetWindowLong(handle, ExtendedStyleIndex, updatedStyle);
     }
 
+    public void ApplySettings(AppSettings settings)
+    {
+        Topmost = settings.AlwaysOnTop;
+        Opacity = settings.WindowOpacity;
+        PinButton.Foreground = Topmost ? FindResource("CpuAccent") as Brush : FindResource("MutedText") as Brush;
+        SetIntervalLabel(settings.UpdateIntervalMilliseconds);
+        SetClickThrough(settings.ClickThrough);
+    }
+
     public AppSettings CaptureSettings(AppSettings settings)
     {
         settings.Left = Left;
         settings.Top = Top;
         settings.AlwaysOnTop = Topmost;
         settings.ClickThrough = _clickThrough;
+        settings.WindowOpacity = Opacity;
         return settings;
     }
 
@@ -132,6 +145,11 @@ public partial class MainWindow : Window
     {
         Topmost = !Topmost;
         PinButton.Foreground = Topmost ? FindResource("CpuAccent") as Brush : FindResource("MutedText") as Brush;
+    }
+
+    private void SettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsRequested?.Invoke(this, EventArgs.Empty);
     }
 
     private void DragArea_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
