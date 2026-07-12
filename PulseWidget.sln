@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PulseWidget", "PulseWidget.csproj", "{55878647-0CBA-497F-B5F1-A706EF256856}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{69DFE9AC-7FFF-49F0-9D2E-86E19B344590}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PulseWidget.Tests", "tests\PulseWidget.Tests\PulseWidget.Tests.csproj", "{93B3420E-BB32-42F7-8005-A1EF618AF6A1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{55878647-0CBA-497F-B5F1-A706EF256856}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55878647-0CBA-497F-B5F1-A706EF256856}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55878647-0CBA-497F-B5F1-A706EF256856}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55878647-0CBA-497F-B5F1-A706EF256856}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93B3420E-BB32-42F7-8005-A1EF618AF6A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93B3420E-BB32-42F7-8005-A1EF618AF6A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93B3420E-BB32-42F7-8005-A1EF618AF6A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93B3420E-BB32-42F7-8005-A1EF618AF6A1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{93B3420E-BB32-42F7-8005-A1EF618AF6A1} = {69DFE9AC-7FFF-49F0-9D2E-86E19B344590}
+	EndGlobalSection
+EndGlobal

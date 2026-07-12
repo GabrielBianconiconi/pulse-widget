@@ -22,5 +22,6 @@
 
   <ItemGroup>
     <Compile Remove="Diagnostics\**\*.cs" />
+    <Compile Remove="tests\**\*.cs" />
   </ItemGroup>
 </Project>
