@@ -1,15 +1,25 @@
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace PulseWidget.Services;
 
 public sealed class SettingsStore
 {
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
-    private readonly string _settingsPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "PulseWidget",
-        "settings.json");
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
+    };
+    private readonly string _settingsPath;
+
+    public SettingsStore(string? settingsPath = null)
+    {
+        _settingsPath = settingsPath ?? Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "PulseWidget",
+            "settings.json");
+    }
 
     public AppSettings Load()
     {
@@ -20,7 +30,7 @@ public sealed class SettingsStore
                 return new AppSettings();
             }
 
-            var settings = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(_settingsPath));
+            var settings = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(_settingsPath), JsonOptions);
             if (settings is null)
             {
                 return new AppSettings();
