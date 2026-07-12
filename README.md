@@ -35,6 +35,14 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 
 O executavel sera criado em `dist\PulseWidget.exe`.
 
+Para gerar o pacote self-contained usado pelo instalador:
+
+```powershell
+.\tools\Publish.ps1
+```
+
+O instalador usa Inno Setup 6 e o script `Installer\PulseWidget.iss`. A assinatura e opcional: defina `PULSE_SIGN_CERT_SHA1` com o thumbprint de um certificado instalado antes de executar `tools\Publish.ps1`. Certificados e chaves privadas nunca devem entrar no repositorio.
+
 ## Uso
 
 - Arraste o cabecalho para posicionar o widget.

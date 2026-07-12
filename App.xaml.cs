@@ -1,6 +1,5 @@
 using System.Drawing;
 using System.Windows;
-using Microsoft.Win32;
 using PulseWidget.Models;
 using PulseWidget.Services;
 using PulseWidget.Views;
@@ -10,11 +9,9 @@ namespace PulseWidget;
 
 public partial class App : System.Windows.Application
 {
-    private const string StartupRegistryPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    private const string StartupValueName = "PulseWidget";
-
     private readonly SettingsStore _settingsStore = new();
     private readonly AlertEvaluator _alertEvaluator = new();
+    private readonly StartupRegistrationService _startupRegistration = new();
     private SingleInstanceCoordinator? _singleInstance;
     private ISensorMonitor? _monitor;
     private MainWindow? _window;
@@ -26,6 +23,7 @@ public partial class App : System.Windows.Application
     private SettingsWindow? _settingsWindow;
     private DiagnosticsWindow? _diagnosticsWindow;
     private SensorSnapshot? _latestSnapshot;
+    private bool _monitorStarted;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -58,8 +56,15 @@ public partial class App : System.Windows.Application
         _monitor.SnapshotAvailable += OnSnapshotAvailable;
 
         CreateTrayIcon();
-        _window.Show();
-        _monitor.Start(_settings.UpdateIntervalMilliseconds);
+        if (e.Args.Contains("--autostart"))
+        {
+            _window.Hide();
+        }
+        else
+        {
+            _window.Show();
+            StartMonitoring();
+        }
     }
 
     private async Task RunSensorHostAsync(IReadOnlyList<string> arguments)
@@ -153,10 +158,10 @@ public partial class App : System.Windows.Application
 
         _startupItem = new Forms.ToolStripMenuItem("Iniciar com o Windows")
         {
-            Checked = IsStartupEnabled(),
+            Checked = _startupRegistration.IsEnabled(),
             CheckOnClick = true
         };
-        _startupItem.CheckedChanged += (_, _) => SetStartup(_startupItem.Checked);
+        _startupItem.CheckedChanged += (_, _) => _startupRegistration.SetEnabled(_startupItem.Checked);
         menu.Items.Add(_startupItem);
 
         menu.Items.Add(new Forms.ToolStripSeparator());
@@ -212,6 +217,18 @@ public partial class App : System.Windows.Application
 
         _window.Show();
         _window.Activate();
+        StartMonitoring();
+    }
+
+    private void StartMonitoring()
+    {
+        if (_monitorStarted || _monitor is null)
+        {
+            return;
+        }
+
+        _monitorStarted = true;
+        _monitor.Start(_settings.UpdateIntervalMilliseconds);
     }
 
     private void ShowSettings()
@@ -227,7 +244,7 @@ public partial class App : System.Windows.Application
             return;
         }
 
-        _settingsWindow = new SettingsWindow(_settings, IsStartupEnabled(), _latestSnapshot?.AvailableGpus ?? []) { Owner = _window };
+        _settingsWindow = new SettingsWindow(_settings, _startupRegistration.IsEnabled(), _latestSnapshot?.AvailableGpus ?? []) { Owner = _window };
         if (_settingsWindow.ShowDialog() == true)
         {
             _settings = _settingsWindow.Result;
@@ -249,7 +266,7 @@ public partial class App : System.Windows.Application
                 _startupItem.Checked = _settingsWindow.StartWithWindows;
             }
 
-            SetStartup(_settingsWindow.StartWithWindows);
+            _startupRegistration.SetEnabled(_settingsWindow.StartWithWindows);
             SaveSettings();
         }
 
@@ -337,29 +354,4 @@ public partial class App : System.Windows.Application
             : Icon.ExtractAssociatedIcon(executablePath) ?? SystemIcons.Application;
     }
 
-    private static bool IsStartupEnabled()
-    {
-        using var key = Registry.CurrentUser.OpenSubKey(StartupRegistryPath);
-        return key?.GetValue(StartupValueName) is string;
-    }
-
-    private static void SetStartup(bool enabled)
-    {
-        try
-        {
-            using var key = Registry.CurrentUser.CreateSubKey(StartupRegistryPath);
-            if (enabled && Environment.ProcessPath is { } executablePath)
-            {
-                key.SetValue(StartupValueName, $"\"{executablePath}\"");
-            }
-            else
-            {
-                key.DeleteValue(StartupValueName, false);
-            }
-        }
-        catch
-        {
-            // Startup is optional and can be blocked by Windows policies.
-        }
-    }
 }
