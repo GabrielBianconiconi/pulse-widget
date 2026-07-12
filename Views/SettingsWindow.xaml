@@ -9,6 +9,39 @@
         WindowStartupLocation="CenterOwner"
         Background="#FF12161D"
         Foreground="#FFF5F8FA">
+    <Window.Resources>
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#FF252D38" />
+            <Setter Property="Foreground" Value="#FFF5F8FA" />
+            <Setter Property="BorderBrush" Value="#FF3A4655" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="8,3" />
+        </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#FF1A2029" />
+            <Setter Property="Foreground" Value="#FFF5F8FA" />
+            <Setter Property="Padding" Value="8,5" />
+            <Style.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" Value="#FF344152" />
+                    <Setter Property="Foreground" Value="#FFFFFFFF" />
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#FF2B5F51" />
+                    <Setter Property="Foreground" Value="#FFFFFFFF" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#FF252D38" />
+            <Setter Property="Foreground" Value="#FFF5F8FA" />
+            <Setter Property="CaretBrush" Value="#FF66E3A4" />
+            <Setter Property="SelectionBrush" Value="#FF2B7A61" />
+            <Setter Property="BorderBrush" Value="#FF3A4655" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="7,3" />
+        </Style>
+    </Window.Resources>
     <Grid Margin="26">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
