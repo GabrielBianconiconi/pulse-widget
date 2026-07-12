@@ -71,6 +71,8 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="12" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="12" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -91,6 +93,15 @@
                 <TextBlock Text="Auto permanece na mesma GPU durante a sessao" FontSize="11" Foreground="#FF83909F" />
             </StackPanel>
             <ComboBox x:Name="GpuComboBox" Grid.Row="2" Grid.Column="1" Height="32" DisplayMemberPath="Name" VerticalContentAlignment="Center" />
+            <StackPanel Grid.Row="4">
+                <TextBlock Text="Tema" FontFamily="Segoe UI Semibold" />
+                <TextBlock Text="Paleta aplicada ao dashboard" FontSize="11" Foreground="#FF83909F" />
+            </StackPanel>
+            <ComboBox x:Name="ThemeComboBox" Grid.Row="4" Grid.Column="1" Height="32" VerticalContentAlignment="Center">
+                <ComboBoxItem Content="Escuro" Tag="Dark" />
+                <ComboBoxItem Content="Grafite" Tag="Graphite" />
+                <ComboBoxItem Content="Claro" Tag="Light" />
+            </ComboBox>
         </Grid>
 
         <CheckBox x:Name="AlwaysOnTopCheckBox" Grid.Row="8" Content="Manter sempre no topo" FontFamily="Segoe UI Semibold" />
@@ -104,6 +115,8 @@
         <Border Grid.Row="15" Margin="0,14,0,14" Padding="14" CornerRadius="10" Background="#FF1A2029" VerticalAlignment="Top">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="12" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="12" />
                     <RowDefinition Height="Auto" />
@@ -122,6 +135,15 @@
                     <TextBlock Grid.Column="3" Text="GPU limite" VerticalAlignment="Center" Foreground="#FF83909F" />
                     <TextBox x:Name="GpuThresholdTextBox" Grid.Column="4" Height="28" VerticalContentAlignment="Center" />
                 </Grid>
+                <StackPanel Grid.Row="4">
+                    <CheckBox x:Name="GpuFirstCheckBox" Content="Mostrar GPU antes da CPU" Margin="0,0,0,8" />
+                    <WrapPanel>
+                        <CheckBox x:Name="ShowVramCheckBox" Content="VRAM" Margin="0,0,14,6" />
+                        <CheckBox x:Name="ShowStorageCheckBox" Content="SSD" Margin="0,0,14,6" />
+                        <CheckBox x:Name="ShowFansCheckBox" Content="Fans" Margin="0,0,14,6" />
+                        <CheckBox x:Name="ShowNetworkCheckBox" Content="Rede" Margin="0,0,0,6" />
+                    </WrapPanel>
+                </StackPanel>
             </Grid>
         </Border>
 

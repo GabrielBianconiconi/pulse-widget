@@ -28,6 +28,7 @@ public partial class MainWindow : Window
         PinButton.Foreground = Topmost ? FindResource("CpuAccent") as Brush : FindResource("MutedText") as Brush;
         SetIntervalLabel(settings.UpdateIntervalMilliseconds);
         ApplyChartSettings(settings);
+        ApplyDashboardSettings(settings);
         ApplyCompactMode(settings);
 
         if (double.IsNaN(settings.Left) || double.IsNaN(settings.Top))
@@ -124,6 +125,17 @@ public partial class MainWindow : Window
         SetClickThrough(settings.ClickThrough);
         ApplyCompactMode(settings);
         ApplyChartSettings(settings);
+        ApplyDashboardSettings(settings);
+    }
+
+    private void ApplyDashboardSettings(AppSettings settings)
+    {
+        System.Windows.Controls.Grid.SetColumn(CpuCard, settings.GpuCardFirst ? 2 : 0);
+        System.Windows.Controls.Grid.SetColumn(GpuCard, settings.GpuCardFirst ? 0 : 2);
+        VramMetricText.Visibility = settings.ShowVram ? Visibility.Visible : Visibility.Collapsed;
+        StorageMetricText.Visibility = settings.ShowStorage ? Visibility.Visible : Visibility.Collapsed;
+        FanMetricText.Visibility = settings.ShowFans ? Visibility.Visible : Visibility.Collapsed;
+        NetworkMetricText.Visibility = settings.ShowNetwork ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public void SetTemperatureWarning(bool cpuWarning, bool gpuWarning)

@@ -1,14 +1,15 @@
 <Application x:Class="PulseWidget.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
-        <SolidColorBrush x:Key="WindowBackground" Color="#F312161D" />
-        <SolidColorBrush x:Key="CardBackground" Color="#FF1A2029" />
-        <SolidColorBrush x:Key="MutedText" Color="#FF83909F" />
-        <SolidColorBrush x:Key="PrimaryText" Color="#FFF5F8FA" />
-        <SolidColorBrush x:Key="CpuAccent" Color="#FF66E3A4" />
-        <SolidColorBrush x:Key="GpuAccent" Color="#FF62A7FF" />
+        <SolidColorBrush x:Key="WindowBackground" Color="#F312161D" po:Freeze="False" />
+        <SolidColorBrush x:Key="CardBackground" Color="#FF1A2029" po:Freeze="False" />
+        <SolidColorBrush x:Key="MutedText" Color="#FF83909F" po:Freeze="False" />
+        <SolidColorBrush x:Key="PrimaryText" Color="#FFF5F8FA" po:Freeze="False" />
+        <SolidColorBrush x:Key="CpuAccent" Color="#FF66E3A4" po:Freeze="False" />
+        <SolidColorBrush x:Key="GpuAccent" Color="#FF62A7FF" po:Freeze="False" />
 
         <Style TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI" />

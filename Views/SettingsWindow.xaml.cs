@@ -24,6 +24,9 @@ public partial class SettingsWindow : Window
         GpuComboBox.ItemsSource = gpuOptions;
         GpuComboBox.SelectedItem = gpuOptions.FirstOrDefault(gpu => gpu.Identifier == settings.SelectedGpuIdentifier)
                                    ?? gpuOptions[0];
+        ThemeComboBox.SelectedItem = ThemeComboBox.Items
+            .OfType<ComboBoxItem>()
+            .First(item => item.Tag.ToString() == settings.Theme);
         AlwaysOnTopCheckBox.IsChecked = settings.AlwaysOnTop;
         ClickThroughCheckBox.IsChecked = settings.ClickThrough;
         CompactModeCheckBox.IsChecked = settings.CompactMode;
@@ -31,6 +34,11 @@ public partial class SettingsWindow : Window
         AlertsEnabledCheckBox.IsChecked = settings.AlertsEnabled;
         CpuThresholdTextBox.Text = settings.CpuTemperatureThreshold.ToString("0");
         GpuThresholdTextBox.Text = settings.GpuTemperatureThreshold.ToString("0");
+        GpuFirstCheckBox.IsChecked = settings.GpuCardFirst;
+        ShowVramCheckBox.IsChecked = settings.ShowVram;
+        ShowStorageCheckBox.IsChecked = settings.ShowStorage;
+        ShowFansCheckBox.IsChecked = settings.ShowFans;
+        ShowNetworkCheckBox.IsChecked = settings.ShowNetwork;
     }
 
     public AppSettings Result { get; }
@@ -57,6 +65,11 @@ public partial class SettingsWindow : Window
         {
             Result.SelectedGpuIdentifier = gpuOption.Identifier;
         }
+
+        if (ThemeComboBox.SelectedItem is ComboBoxItem themeItem)
+        {
+            Result.Theme = themeItem.Tag.ToString()!;
+        }
         if (HistoryComboBox.SelectedItem is ComboBoxItem historyItem)
         {
             Result.ChartHistoryMinutes = int.Parse(historyItem.Tag.ToString()!);
@@ -65,6 +78,11 @@ public partial class SettingsWindow : Window
         Result.ClickThrough = ClickThroughCheckBox.IsChecked == true;
         Result.CompactMode = CompactModeCheckBox.IsChecked == true;
         Result.AlertsEnabled = AlertsEnabledCheckBox.IsChecked == true;
+        Result.GpuCardFirst = GpuFirstCheckBox.IsChecked == true;
+        Result.ShowVram = ShowVramCheckBox.IsChecked == true;
+        Result.ShowStorage = ShowStorageCheckBox.IsChecked == true;
+        Result.ShowFans = ShowFansCheckBox.IsChecked == true;
+        Result.ShowNetwork = ShowNetworkCheckBox.IsChecked == true;
         if (double.TryParse(CpuThresholdTextBox.Text, out var cpuThreshold))
         {
             Result.CpuTemperatureThreshold = Math.Clamp(cpuThreshold, 60, 105);

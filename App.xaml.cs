@@ -45,6 +45,7 @@ public partial class App : System.Windows.Application
         _singleInstance.StartListening();
 
         _settings = _settingsStore.Load();
+        ThemeService.Apply(_settings.Theme);
         _monitor = new HardwareMonitorService();
         _monitor.SetSelectedGpu(_settings.SelectedGpuIdentifier);
         _window = new MainWindow(_settings);
@@ -212,6 +213,7 @@ public partial class App : System.Windows.Application
         if (_settingsWindow.ShowDialog() == true)
         {
             _settings = _settingsWindow.Result;
+            ThemeService.Apply(_settings.Theme);
             _monitor?.SetInterval(_settings.UpdateIntervalMilliseconds);
             _monitor?.SetSelectedGpu(_settings.SelectedGpuIdentifier);
             _window.ApplySettings(_settings);

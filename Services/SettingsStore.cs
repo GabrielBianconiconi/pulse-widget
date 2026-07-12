@@ -50,6 +50,7 @@ public sealed class SettingsStore
             settings.SelectedGpuIdentifier = string.IsNullOrWhiteSpace(settings.SelectedGpuIdentifier)
                 ? "auto"
                 : settings.SelectedGpuIdentifier;
+            settings.Theme = settings.Theme is "Dark" or "Graphite" or "Light" ? settings.Theme : "Dark";
             return settings;
         }
         catch

@@ -38,6 +38,18 @@ public sealed class AppSettings
 
     public string SelectedGpuIdentifier { get; set; } = "auto";
 
+    public string Theme { get; set; } = "Dark";
+
+    public bool GpuCardFirst { get; set; }
+
+    public bool ShowVram { get; set; } = true;
+
+    public bool ShowStorage { get; set; } = true;
+
+    public bool ShowFans { get; set; } = true;
+
+    public bool ShowNetwork { get; set; } = true;
+
     public AppSettings Clone()
     {
         return new AppSettings
@@ -59,7 +71,13 @@ public sealed class AppSettings
             AlertDurationSeconds = AlertDurationSeconds,
             AlertCooldownMinutes = AlertCooldownMinutes,
             AlertHysteresisDegrees = AlertHysteresisDegrees,
-            SelectedGpuIdentifier = SelectedGpuIdentifier
+            SelectedGpuIdentifier = SelectedGpuIdentifier,
+            Theme = Theme,
+            GpuCardFirst = GpuCardFirst,
+            ShowVram = ShowVram,
+            ShowStorage = ShowStorage,
+            ShowFans = ShowFans,
+            ShowNetwork = ShowNetwork
         };
     }
 }
