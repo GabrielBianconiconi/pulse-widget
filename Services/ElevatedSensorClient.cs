@@ -126,10 +126,14 @@ public sealed class ElevatedSensorClient : ISensorMonitor
         }
         catch (Win32Exception exception) when (exception.NativeErrorCode == 1223)
         {
+            _diagnostics = "O usuario recusou a elevacao UAC do coletor.";
+            AppLog.Info(_diagnostics);
             SnapshotAvailable?.Invoke(this, SensorSnapshot.Unavailable("UAC recusado: metricas elevadas indisponiveis"));
         }
         catch (Exception exception)
         {
+            _diagnostics = $"Falha no coletor: {exception.GetType().Name}: {exception.Message}";
+            AppLog.Error("Coletor elevado indisponivel", exception);
             SnapshotAvailable?.Invoke(this, SensorSnapshot.Unavailable($"Coletor indisponivel: {exception.Message}"));
         }
         finally

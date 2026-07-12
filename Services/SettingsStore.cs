@@ -63,8 +63,9 @@ public sealed class SettingsStore
             settings.Theme = settings.Theme is "Dark" or "Graphite" or "Light" ? settings.Theme : "Dark";
             return settings;
         }
-        catch
+        catch (Exception exception)
         {
+            AppLog.Error("Falha ao carregar configuracoes", exception);
             return new AppSettings();
         }
     }
@@ -78,9 +79,9 @@ public sealed class SettingsStore
             File.WriteAllText(temporaryPath, JsonSerializer.Serialize(settings, JsonOptions));
             File.Move(temporaryPath, _settingsPath, true);
         }
-        catch
+        catch (Exception exception)
         {
-            // A settings failure must not prevent the monitor from closing.
+            AppLog.Error("Falha ao salvar configuracoes", exception);
         }
     }
 }

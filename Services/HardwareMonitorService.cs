@@ -98,6 +98,7 @@ public sealed class HardwareMonitorService : ISensorMonitor
         }
         catch (Exception exception)
         {
+            AppLog.Error("Falha ao abrir LibreHardwareMonitor", exception);
             PublishUnavailable($"Sensores indisponiveis: {exception.Message}");
             return;
         }
@@ -112,6 +113,7 @@ public sealed class HardwareMonitorService : ISensorMonitor
             }
             catch (Exception exception)
             {
+                AppLog.Error("Falha durante leitura de sensores", exception);
                 snapshot = CreateUnavailableSnapshot($"Falha ao ler sensores: {exception.Message}");
             }
 

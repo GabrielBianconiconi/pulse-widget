@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Windows;
+using System.Windows.Threading;
 using PulseWidget.Models;
 using PulseWidget.Services;
 using PulseWidget.Views;
@@ -29,6 +30,9 @@ public partial class App : System.Windows.Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        DispatcherUnhandledException += OnDispatcherUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+        AppLog.Info($"Pulse Widget iniciado. Argumentos: {string.Join(' ', e.Args)}");
 
         if (SensorHostRunner.IsHostMode(e.Args))
         {
@@ -291,7 +295,10 @@ public partial class App : System.Windows.Application
             return;
         }
 
-        var report = _monitor.GetDiagnosticsReport() + Environment.NewLine + Environment.NewLine + _rtssIntegration.Status;
+        var report = _monitor.GetDiagnosticsReport() +
+                     Environment.NewLine + Environment.NewLine + _rtssIntegration.Status +
+                     Environment.NewLine + Environment.NewLine + $"Log: {AppLog.FilePath}" +
+                     Environment.NewLine + AppLog.GetRecentLines();
         _diagnosticsWindow = new DiagnosticsWindow(report) { Owner = _window };
         _diagnosticsWindow.Closed += (_, _) => _diagnosticsWindow = null;
         _diagnosticsWindow.Show();
@@ -341,7 +348,23 @@ public partial class App : System.Windows.Application
         _singleInstance?.Dispose();
         _singleInstance = null;
 
+        DispatcherUnhandledException -= OnDispatcherUnhandledException;
+        TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
+        AppLog.Info("Pulse Widget encerrado.");
+
         Shutdown();
+    }
+
+    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        AppLog.Error("Falha nao observada em tarefa", e.Exception);
+        e.SetObserved();
+    }
+
+    private static void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        AppLog.Error("Falha nao tratada na interface", e.Exception);
+        e.Handled = true;
     }
 
     private void SaveSettings()
