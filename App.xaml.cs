@@ -14,6 +14,7 @@ public partial class App : System.Windows.Application
     private const string StartupValueName = "PulseWidget";
 
     private readonly SettingsStore _settingsStore = new();
+    private readonly AlertEvaluator _alertEvaluator = new();
     private SingleInstanceCoordinator? _singleInstance;
     private HardwareMonitorService? _monitor;
     private MainWindow? _window;
@@ -58,7 +59,29 @@ public partial class App : System.Windows.Application
             return;
         }
 
-        Dispatcher.BeginInvoke(() => _window?.UpdateSnapshot(snapshot));
+        Dispatcher.BeginInvoke(() => ProcessSnapshot(snapshot));
+    }
+
+    private void ProcessSnapshot(SensorSnapshot snapshot)
+    {
+        if (_window is null)
+        {
+            return;
+        }
+
+        _window.UpdateSnapshot(snapshot);
+        _window.SetTemperatureWarning(
+            _settings.AlertsEnabled && snapshot.CpuTemperature >= _settings.CpuTemperatureThreshold,
+            _settings.AlertsEnabled && snapshot.GpuTemperature >= _settings.GpuTemperatureThreshold);
+
+        foreach (var alert in _alertEvaluator.Evaluate(snapshot, _settings))
+        {
+            _trayIcon?.ShowBalloonTip(
+                5000,
+                "Alerta do Pulse Widget",
+                $"{alert.Metric}: {alert.Value:0} C (limite {alert.Threshold:0} C)",
+                Forms.ToolTipIcon.Warning);
+        }
     }
 
     private void CreateTrayIcon()

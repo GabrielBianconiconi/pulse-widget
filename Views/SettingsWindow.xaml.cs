@@ -22,6 +22,9 @@ public partial class SettingsWindow : Window
         ClickThroughCheckBox.IsChecked = settings.ClickThrough;
         CompactModeCheckBox.IsChecked = settings.CompactMode;
         StartupCheckBox.IsChecked = startWithWindows;
+        AlertsEnabledCheckBox.IsChecked = settings.AlertsEnabled;
+        CpuThresholdTextBox.Text = settings.CpuTemperatureThreshold.ToString("0");
+        GpuThresholdTextBox.Text = settings.GpuTemperatureThreshold.ToString("0");
     }
 
     public AppSettings Result { get; }
@@ -51,6 +54,17 @@ public partial class SettingsWindow : Window
         Result.AlwaysOnTop = AlwaysOnTopCheckBox.IsChecked == true;
         Result.ClickThrough = ClickThroughCheckBox.IsChecked == true;
         Result.CompactMode = CompactModeCheckBox.IsChecked == true;
+        Result.AlertsEnabled = AlertsEnabledCheckBox.IsChecked == true;
+        if (double.TryParse(CpuThresholdTextBox.Text, out var cpuThreshold))
+        {
+            Result.CpuTemperatureThreshold = Math.Clamp(cpuThreshold, 60, 105);
+        }
+
+        if (double.TryParse(GpuThresholdTextBox.Text, out var gpuThreshold))
+        {
+            Result.GpuTemperatureThreshold = Math.Clamp(gpuThreshold, 55, 105);
+        }
+
         StartWithWindows = StartupCheckBox.IsChecked == true;
         DialogResult = true;
     }

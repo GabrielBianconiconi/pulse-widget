@@ -101,7 +101,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource Card}">
+                <Border x:Name="CpuCard" Grid.Column="0" Style="{StaticResource Card}">
                     <StackPanel>
                         <DockPanel>
                             <TextBlock Text="CPU" Foreground="{StaticResource CpuAccent}" FontFamily="Segoe UI Semibold" FontSize="11" />
@@ -115,7 +115,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Style="{StaticResource Card}">
+                <Border x:Name="GpuCard" Grid.Column="2" Style="{StaticResource Card}">
                     <StackPanel>
                         <DockPanel>
                             <TextBlock Text="GPU" Foreground="{StaticResource GpuAccent}" FontFamily="Segoe UI Semibold" FontSize="11" />

@@ -44,6 +44,9 @@ public sealed class SettingsStore
                 : 2;
             settings.CpuTemperatureThreshold = Math.Clamp(settings.CpuTemperatureThreshold, 60, 105);
             settings.GpuTemperatureThreshold = Math.Clamp(settings.GpuTemperatureThreshold, 55, 105);
+            settings.AlertDurationSeconds = Math.Clamp(settings.AlertDurationSeconds, 3, 120);
+            settings.AlertCooldownMinutes = Math.Clamp(settings.AlertCooldownMinutes, 1, 120);
+            settings.AlertHysteresisDegrees = Math.Clamp(settings.AlertHysteresisDegrees, 2, 15);
             return settings;
         }
         catch

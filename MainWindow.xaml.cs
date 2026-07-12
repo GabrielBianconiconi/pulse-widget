@@ -116,6 +116,18 @@ public partial class MainWindow : Window
         ApplyChartSettings(settings);
     }
 
+    public void SetTemperatureWarning(bool cpuWarning, bool gpuWarning)
+    {
+        ApplyWarningBorder(CpuCard, cpuWarning);
+        ApplyWarningBorder(GpuCard, gpuWarning);
+    }
+
+    private static void ApplyWarningBorder(System.Windows.Controls.Border card, bool warning)
+    {
+        card.BorderBrush = warning ? Brushes.OrangeRed : Brushes.Transparent;
+        card.BorderThickness = warning ? new Thickness(1.5) : new Thickness(0);
+    }
+
     private void ApplyChartSettings(AppSettings settings)
     {
         UsageChart.WindowMinutes = settings.ChartHistoryMinutes;

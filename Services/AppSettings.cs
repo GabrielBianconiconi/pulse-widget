@@ -28,6 +28,14 @@ public sealed class AppSettings
 
     public double GpuTemperatureThreshold { get; set; } = 83;
 
+    public bool AlertsEnabled { get; set; } = true;
+
+    public int AlertDurationSeconds { get; set; } = 10;
+
+    public int AlertCooldownMinutes { get; set; } = 10;
+
+    public double AlertHysteresisDegrees { get; set; } = 5;
+
     public AppSettings Clone()
     {
         return new AppSettings
@@ -44,7 +52,11 @@ public sealed class AppSettings
             NormalHeight = NormalHeight,
             ChartHistoryMinutes = ChartHistoryMinutes,
             CpuTemperatureThreshold = CpuTemperatureThreshold,
-            GpuTemperatureThreshold = GpuTemperatureThreshold
+            GpuTemperatureThreshold = GpuTemperatureThreshold,
+            AlertsEnabled = AlertsEnabled,
+            AlertDurationSeconds = AlertDurationSeconds,
+            AlertCooldownMinutes = AlertCooldownMinutes,
+            AlertHysteresisDegrees = AlertHysteresisDegrees
         };
     }
 }
