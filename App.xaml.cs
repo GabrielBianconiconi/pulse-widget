@@ -43,11 +43,18 @@ public partial class App : System.Windows.Application
         _singleInstance = new SingleInstanceCoordinator();
         if (!_singleInstance.IsPrimary)
         {
-            _singleInstance.NotifyPrimaryAsync().GetAwaiter().GetResult();
+            try
+            {
+                _singleInstance.NotifyPrimaryAsync().Wait(TimeSpan.FromSeconds(2));
+            }
+            catch (Exception exception)
+            {
+                AppLog.Error("Falha ao ativar instancia primaria", exception);
+            }
+
             _singleInstance.Dispose();
             _singleInstance = null;
-            Shutdown();
-            return;
+            Environment.Exit(0);
         }
 
         _singleInstance.ActivationRequested += (_, _) => Dispatcher.BeginInvoke(ShowWidget);

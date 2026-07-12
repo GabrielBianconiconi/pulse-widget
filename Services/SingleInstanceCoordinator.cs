@@ -18,8 +18,17 @@ public sealed class SingleInstanceCoordinator : IDisposable
         var sid = WindowsIdentity.GetCurrent().User?.Value ?? Environment.UserName;
         var instanceId = sid.Replace('-', '_');
         _pipeName = $"PulseWidget_{instanceId}";
-        _mutex = new Mutex(true, $"Local\\{_pipeName}", out var createdNew);
-        _ownsMutex = createdNew;
+        _mutex = new Mutex(false, $"Local\\{_pipeName}");
+        try
+        {
+            _ownsMutex = _mutex.WaitOne(0, false);
+        }
+        catch (AbandonedMutexException)
+        {
+            _ownsMutex = true;
+        }
+
+        AppLog.Info($"Coordenador de instancia iniciado. Primaria: {_ownsMutex}");
     }
 
     public bool IsPrimary => _ownsMutex;
