@@ -58,6 +58,8 @@ public partial class MainWindow : Window
         GpuUsageText.Text = FormatNumber(snapshot.GpuUsage, "0");
         GpuTemperatureText.Text = FormatValue(snapshot.GpuTemperature, "0", " C");
         GpuDetailText.Text = $"{FormatClock(snapshot.GpuClock)}  /  {FormatValue(snapshot.GpuPower, "0", " W")}";
+        CpuCard.ToolTip = snapshot.CpuName;
+        GpuCard.ToolTip = snapshot.GpuName;
 
         MemoryUsageText.Text = FormatValue(snapshot.MemoryUsage, "0", "%");
         MemoryProgress.Value = snapshot.MemoryUsage ?? 0;
@@ -65,6 +67,14 @@ public partial class MainWindow : Window
         MemoryDetailText.Text = snapshot.MemoryUsedGb.HasValue && totalMemory.HasValue
             ? $"{snapshot.MemoryUsedGb:0.0} / {totalMemory:0.0} GB"
             : "-- / -- GB";
+        VramMetricText.Text = FormatVram(snapshot);
+        StorageMetricText.Text = snapshot.StorageTemperature.HasValue
+            ? $"SSD {snapshot.StorageTemperature:0} C / {FormatValue(snapshot.StorageActivity, "0", "%")}" : "SSD --";
+        StorageMetricText.ToolTip = snapshot.StorageName;
+        FanMetricText.Text = snapshot.FanRpm.HasValue ? $"FAN {snapshot.FanRpm:0} RPM" : "FAN --";
+        FanMetricText.ToolTip = snapshot.FanName;
+        NetworkMetricText.Text = $"NET D {FormatThroughput(snapshot.NetworkDownloadBytes)} U {FormatThroughput(snapshot.NetworkUploadBytes)}";
+        NetworkMetricText.ToolTip = snapshot.NetworkName;
 
         UsageChart.AddPoints(snapshot.Timestamp, snapshot.CpuUsage, snapshot.GpuUsage);
         TemperatureChart.AddPoints(snapshot.Timestamp, snapshot.CpuTemperature, snapshot.GpuTemperature);
@@ -282,20 +292,7 @@ public partial class MainWindow : Window
     private static string BuildExtraStatus(SensorSnapshot snapshot)
     {
         var parts = new List<string>();
-        if (snapshot.StorageTemperature.HasValue)
-        {
-            parts.Add($"SSD {snapshot.StorageTemperature:0} C");
-        }
-
-        if (snapshot.FanRpm.HasValue)
-        {
-            parts.Add($"FAN {snapshot.FanRpm:0} RPM");
-        }
-
-        if (snapshot.GpuMemoryUsedMb.HasValue && snapshot.GpuMemoryTotalMb.HasValue)
-        {
-            parts.Add($"VRAM {snapshot.GpuMemoryUsedMb / 1024:0.0}/{snapshot.GpuMemoryTotalMb / 1024:0.0} GB");
-        }
+        parts.Add(snapshot.GpuName);
 
         return string.Join("  |  ", parts);
     }
@@ -322,6 +319,25 @@ public partial class MainWindow : Window
     }
 
     private static string FormatStat(double? value) => value.HasValue ? value.Value.ToString("0") : "--";
+
+    private static string FormatVram(SensorSnapshot snapshot)
+    {
+        return snapshot.GpuMemoryUsedMb.HasValue && snapshot.GpuMemoryTotalMb.HasValue
+            ? $"VRAM {snapshot.GpuMemoryUsedMb / 1024:0.0}/{snapshot.GpuMemoryTotalMb / 1024:0.0} GB"
+            : "VRAM --";
+    }
+
+    private static string FormatThroughput(double? bytesPerSecond)
+    {
+        if (!bytesPerSecond.HasValue)
+        {
+            return "--";
+        }
+
+        return bytesPerSecond.Value >= 1024 * 1024
+            ? $"{bytesPerSecond.Value / (1024 * 1024):0.0} MB/s"
+            : $"{bytesPerSecond.Value / 1024:0} KB/s";
+    }
 
     [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
     private static extern int GetWindowLong(nint windowHandle, int index);

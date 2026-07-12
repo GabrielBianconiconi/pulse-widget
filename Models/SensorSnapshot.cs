@@ -17,6 +17,12 @@ public sealed record SensorSnapshot(
     double? MemoryUsage,
     double? MemoryUsedGb,
     double? MemoryAvailableGb,
+    string StorageName,
     double? StorageTemperature,
+    double? StorageActivity,
+    string FanName,
     double? FanRpm,
+    string NetworkName,
+    double? NetworkDownloadBytes,
+    double? NetworkUploadBytes,
     string Status);

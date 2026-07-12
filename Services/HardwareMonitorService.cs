@@ -20,7 +20,8 @@ public sealed class HardwareMonitorService : IDisposable
         IsMemoryEnabled = false,
         IsMotherboardEnabled = true,
         IsControllerEnabled = true,
-        IsStorageEnabled = true
+        IsStorageEnabled = true,
+        IsNetworkEnabled = true
     };
 
     private CancellationTokenSource? _cancellation;
@@ -118,6 +119,7 @@ public sealed class HardwareMonitorService : IDisposable
         var cpuHardware = hardware.Where(item => item.HardwareType == HardwareType.Cpu).ToArray();
         var gpuHardware = hardware.Where(item => GpuTypes.Contains(item.HardwareType)).ToArray();
         var storageHardware = hardware.Where(item => item.HardwareType == HardwareType.Storage).ToArray();
+        var networkHardware = hardware.Where(item => item.HardwareType == HardwareType.Network).ToArray();
 
         var selectedGpu = gpuHardware
             .OrderByDescending(item => PreferredValue([item], SensorType.Load, "GPU Core", "D3D 3D") ?? -1)
@@ -135,6 +137,17 @@ public sealed class HardwareMonitorService : IDisposable
         var gpuMemoryTotal = PreferredSensor(selectedGpuArray, SensorType.SmallData, "GPU Memory Total")?.Value;
 
         var memory = ReadPhysicalMemory();
+        var selectedStorage = storageHardware
+            .OrderByDescending(item => MaximumValue([item], SensorType.Temperature) ?? -1)
+            .FirstOrDefault();
+        var selectedStorageArray = selectedStorage is null ? [] : new[] { selectedStorage };
+        var selectedFan = MaximumSensor(hardware, SensorType.Fan);
+        var selectedNetwork = networkHardware
+            .OrderByDescending(item =>
+                (NamedValue([item], SensorType.Throughput, "Download Speed", "Download") ?? 0) +
+                (NamedValue([item], SensorType.Throughput, "Upload Speed", "Upload") ?? 0))
+            .FirstOrDefault();
+        var selectedNetworkArray = selectedNetwork is null ? [] : new[] { selectedNetwork };
 
         var hasCoreMetrics = cpuUsage.HasValue || selectedGpu is not null;
         var status = !cpuTemperature.HasValue
@@ -159,8 +172,14 @@ public sealed class HardwareMonitorService : IDisposable
             memory?.UsagePercentage,
             memory?.UsedGigabytes,
             memory?.AvailableGigabytes,
-            MaximumValue(storageHardware, SensorType.Temperature),
-            MaximumValue(hardware, SensorType.Fan),
+            selectedStorage?.Name ?? "Armazenamento",
+            MaximumValue(selectedStorageArray, SensorType.Temperature),
+            NamedValue(selectedStorageArray, SensorType.Load, "Total Activity", "Activity"),
+            selectedFan?.Hardware.Name ?? "Ventoinha",
+            selectedFan?.Sensor.Value,
+            selectedNetwork?.Name ?? "Rede",
+            NamedValue(selectedNetworkArray, SensorType.Throughput, "Download Speed", "Download"),
+            NamedValue(selectedNetworkArray, SensorType.Throughput, "Upload Speed", "Upload"),
             status);
     }
 
@@ -177,7 +196,10 @@ public sealed class HardwareMonitorService : IDisposable
             "GPU",
             null, null, null, null,
             null, null, null, null, null, null,
-            null, null, null, null, null,
+            null, null, null,
+            "Armazenamento", null, null,
+            "Ventoinha", null,
+            "Rede", null, null,
             status);
     }
 
@@ -197,6 +219,7 @@ public sealed class HardwareMonitorService : IDisposable
     {
         return hardwareType == HardwareType.Cpu
                || hardwareType == HardwareType.Memory
+               || hardwareType == HardwareType.Network
                || GpuTypes.Contains(hardwareType);
     }
 
@@ -281,6 +304,41 @@ public sealed class HardwareMonitorService : IDisposable
         params string[] preferredNames)
     {
         return PreferredSensor(hardware, sensorType, preferredNames)?.Value;
+    }
+
+    private static double? NamedValue(
+        IEnumerable<IHardware> hardware,
+        SensorType sensorType,
+        params string[] preferredNames)
+    {
+        var sensors = hardware.SelectMany(item => item.Sensors)
+            .Where(sensor => sensor.SensorType == sensorType && sensor.Value.HasValue)
+            .ToArray();
+        foreach (var name in preferredNames)
+        {
+            var sensor = sensors.FirstOrDefault(item =>
+                item.Name.Equals(name, StringComparison.OrdinalIgnoreCase) ||
+                item.Name.Contains(name, StringComparison.OrdinalIgnoreCase));
+            if (sensor is not null)
+            {
+                return sensor.Value;
+            }
+        }
+
+        return null;
+    }
+
+    private static (IHardware Hardware, ISensor Sensor)? MaximumSensor(
+        IEnumerable<IHardware> hardware,
+        SensorType sensorType)
+    {
+        var maximum = hardware
+            .SelectMany(item => item.Sensors
+                .Where(sensor => sensor.SensorType == sensorType && sensor.Value.HasValue)
+                .Select(sensor => (Hardware: item, Sensor: sensor)))
+            .OrderByDescending(item => item.Sensor.Value)
+            .FirstOrDefault();
+        return maximum.Sensor is null ? null : maximum;
     }
 
     private static double? MaximumValue(IEnumerable<IHardware> hardware, SensorType sensorType)
