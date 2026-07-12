@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using LibreHardwareMonitor.Hardware;
 using PulseWidget.Models;
 
@@ -16,7 +17,7 @@ public sealed class HardwareMonitorService : IDisposable
     {
         IsCpuEnabled = true,
         IsGpuEnabled = true,
-        IsMemoryEnabled = true,
+        IsMemoryEnabled = false,
         IsMotherboardEnabled = true,
         IsControllerEnabled = true,
         IsStorageEnabled = true
@@ -113,7 +114,6 @@ public sealed class HardwareMonitorService : IDisposable
 
         var cpuHardware = hardware.Where(item => item.HardwareType == HardwareType.Cpu).ToArray();
         var gpuHardware = hardware.Where(item => GpuTypes.Contains(item.HardwareType)).ToArray();
-        var memoryHardware = hardware.Where(item => item.HardwareType == HardwareType.Memory).ToArray();
         var storageHardware = hardware.Where(item => item.HardwareType == HardwareType.Storage).ToArray();
 
         var selectedGpu = gpuHardware
@@ -131,8 +131,7 @@ public sealed class HardwareMonitorService : IDisposable
         var gpuMemoryUsed = PreferredSensor(selectedGpuArray, SensorType.SmallData, "GPU Memory Used")?.Value;
         var gpuMemoryTotal = PreferredSensor(selectedGpuArray, SensorType.SmallData, "GPU Memory Total")?.Value;
 
-        var memoryUsed = PreferredValue(memoryHardware, SensorType.Data, "Memory Used");
-        var memoryAvailable = PreferredValue(memoryHardware, SensorType.Data, "Memory Available");
+        var memory = ReadPhysicalMemory();
 
         var hasCoreMetrics = cpuUsage.HasValue || selectedGpu is not null;
         var status = !cpuTemperature.HasValue
@@ -154,9 +153,9 @@ public sealed class HardwareMonitorService : IDisposable
             PreferredValue(selectedGpuArray, SensorType.Clock, "GPU Core"),
             gpuMemoryUsed,
             gpuMemoryTotal,
-            PreferredValue(memoryHardware, SensorType.Load, "Memory"),
-            memoryUsed,
-            memoryAvailable,
+            memory?.UsagePercentage,
+            memory?.UsedGigabytes,
+            memory?.AvailableGigabytes,
             MaximumValue(storageHardware, SensorType.Temperature),
             MaximumValue(hardware, SensorType.Fan),
             status);
@@ -192,6 +191,49 @@ public sealed class HardwareMonitorService : IDisposable
                || hardwareType == HardwareType.Memory
                || GpuTypes.Contains(hardwareType);
     }
+
+    private static PhysicalMemorySnapshot? ReadPhysicalMemory()
+    {
+        var status = new MemoryStatusEx
+        {
+            Length = (uint)Marshal.SizeOf<MemoryStatusEx>()
+        };
+
+        if (!GlobalMemoryStatusEx(ref status) || status.TotalPhysical == 0)
+        {
+            return null;
+        }
+
+        const double bytesPerGigabyte = 1024d * 1024d * 1024d;
+        var usedPhysical = status.TotalPhysical - status.AvailablePhysical;
+        return new PhysicalMemorySnapshot(
+            usedPhysical * 100d / status.TotalPhysical,
+            usedPhysical / bytesPerGigabyte,
+            status.AvailablePhysical / bytesPerGigabyte);
+    }
+
+    private readonly record struct PhysicalMemorySnapshot(
+        double UsagePercentage,
+        double UsedGigabytes,
+        double AvailableGigabytes);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MemoryStatusEx
+    {
+        public uint Length;
+        public uint MemoryLoad;
+        public ulong TotalPhysical;
+        public ulong AvailablePhysical;
+        public ulong TotalPageFile;
+        public ulong AvailablePageFile;
+        public ulong TotalVirtual;
+        public ulong AvailableVirtual;
+        public ulong AvailableExtendedVirtual;
+    }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GlobalMemoryStatusEx(ref MemoryStatusEx buffer);
 
     private static ISensor? PreferredSensor(
         IEnumerable<IHardware> hardware,
