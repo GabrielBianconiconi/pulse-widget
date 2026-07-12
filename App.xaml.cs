@@ -13,6 +13,7 @@ public partial class App : System.Windows.Application
     private const string StartupValueName = "PulseWidget";
 
     private readonly SettingsStore _settingsStore = new();
+    private SingleInstanceCoordinator? _singleInstance;
     private HardwareMonitorService? _monitor;
     private MainWindow? _window;
     private Forms.NotifyIcon? _trayIcon;
@@ -23,6 +24,19 @@ public partial class App : System.Windows.Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        _singleInstance = new SingleInstanceCoordinator();
+        if (!_singleInstance.IsPrimary)
+        {
+            _singleInstance.NotifyPrimaryAsync().GetAwaiter().GetResult();
+            _singleInstance.Dispose();
+            _singleInstance = null;
+            Shutdown();
+            return;
+        }
+
+        _singleInstance.ActivationRequested += (_, _) => Dispatcher.BeginInvoke(ShowWidget);
+        _singleInstance.StartListening();
 
         _settings = _settingsStore.Load();
         _monitor = new HardwareMonitorService();
@@ -159,6 +173,9 @@ public partial class App : System.Windows.Application
             _trayIcon.Visible = false;
             _trayIcon.Dispose();
         }
+
+        _singleInstance?.Dispose();
+        _singleInstance = null;
 
         Shutdown();
     }
