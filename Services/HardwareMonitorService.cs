@@ -85,14 +85,17 @@ public sealed class HardwareMonitorService : IDisposable
         while (!cancellationToken.IsCancellationRequested)
         {
             var startedAt = Environment.TickCount64;
+            SensorSnapshot snapshot;
             try
             {
-                SnapshotAvailable?.Invoke(this, ReadSnapshot());
+                snapshot = ReadSnapshot();
             }
             catch (Exception exception)
             {
-                PublishUnavailable($"Falha ao ler sensores: {exception.Message}");
+                snapshot = CreateUnavailableSnapshot($"Falha ao ler sensores: {exception.Message}");
             }
+
+            SnapshotAvailable?.Invoke(this, snapshot);
 
             var elapsed = (int)Math.Min(int.MaxValue, Environment.TickCount64 - startedAt);
             var delay = Math.Max(50, Volatile.Read(ref _intervalMilliseconds) - elapsed);
@@ -163,14 +166,19 @@ public sealed class HardwareMonitorService : IDisposable
 
     private void PublishUnavailable(string status)
     {
-        SnapshotAvailable?.Invoke(this, new SensorSnapshot(
+        SnapshotAvailable?.Invoke(this, CreateUnavailableSnapshot(status));
+    }
+
+    private static SensorSnapshot CreateUnavailableSnapshot(string status)
+    {
+        return new SensorSnapshot(
             DateTime.Now,
             "CPU",
             "GPU",
             null, null, null, null,
             null, null, null, null, null, null,
             null, null, null, null, null,
-            status));
+            status);
     }
 
     private static IEnumerable<IHardware> FlattenHardware(IEnumerable<IHardware> hardware)

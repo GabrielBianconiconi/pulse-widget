@@ -41,10 +41,7 @@ public partial class App : System.Windows.Application
             return;
         }
 
-        if (_window.IsVisible)
-        {
-            Dispatcher.BeginInvoke(() => _window.UpdateSnapshot(snapshot));
-        }
+        Dispatcher.BeginInvoke(() => _window?.UpdateSnapshot(snapshot));
     }
 
     private void CreateTrayIcon()
