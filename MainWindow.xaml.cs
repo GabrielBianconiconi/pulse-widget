@@ -136,12 +136,23 @@ public partial class MainWindow : Window
         StorageMetricText.Visibility = settings.ShowStorage ? Visibility.Visible : Visibility.Collapsed;
         FanMetricText.Visibility = settings.ShowFans ? Visibility.Visible : Visibility.Collapsed;
         NetworkMetricText.Visibility = settings.ShowNetwork ? Visibility.Visible : Visibility.Collapsed;
+        FrameMetricText.Visibility = settings.RtssEnabled ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public void SetTemperatureWarning(bool cpuWarning, bool gpuWarning)
     {
         ApplyWarningBorder(CpuCard, cpuWarning);
         ApplyWarningBorder(GpuCard, gpuWarning);
+    }
+
+    public void UpdateFrameMetrics(FrameMetrics metrics)
+    {
+        FrameMetricText.Text = metrics.FramesPerSecond.HasValue
+            ? $"FPS {metrics.FramesPerSecond:0} / {metrics.FrameTimeMilliseconds:0.0} ms"
+            : "FPS --";
+        FrameMetricText.ToolTip = string.IsNullOrWhiteSpace(metrics.ProcessName)
+            ? metrics.Status
+            : $"{metrics.ProcessName} | {metrics.Status}";
     }
 
     private static void ApplyWarningBorder(System.Windows.Controls.Border card, bool warning)

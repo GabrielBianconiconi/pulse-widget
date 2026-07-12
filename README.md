@@ -69,8 +69,8 @@ No teste local de 140 segundos, o processo permaneceu aberto, usou aproximadamen
 ## Limitacoes do MVP
 
 - Os sensores disponiveis dependem da placa-mae e dos drivers.
-- FPS e frametime ainda nao fazem parte do widget.
-- O widget nao injeta codigo em jogos. Uma futura versao pode integrar com RTSS para o OSD.
+- FPS e frametime sao opcionais e exigem o RivaTuner Statistics Server em execucao.
+- O widget apenas le a memoria compartilhada do RTSS e nao injeta codigo por conta propria.
 
 ## Licenca
 

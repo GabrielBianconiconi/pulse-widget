@@ -12,6 +12,7 @@ public partial class App : System.Windows.Application
     private readonly SettingsStore _settingsStore = new();
     private readonly AlertEvaluator _alertEvaluator = new();
     private readonly StartupRegistrationService _startupRegistration = new();
+    private readonly RtssIntegration _rtssIntegration = new();
     private SingleInstanceCoordinator? _singleInstance;
     private ISensorMonitor? _monitor;
     private MainWindow? _window;
@@ -50,6 +51,9 @@ public partial class App : System.Windows.Application
 
         _settings = _settingsStore.Load();
         ThemeService.Apply(_settings.Theme);
+        _rtssIntegration.MetricsAvailable += (_, metrics) =>
+            Dispatcher.BeginInvoke(() => _window?.UpdateFrameMetrics(metrics));
+        _rtssIntegration.SetEnabled(_settings.RtssEnabled);
         _monitor = new ElevatedSensorClient();
         _monitor.SetSelectedGpu(_settings.SelectedGpuIdentifier);
         _window = new MainWindow(_settings);
@@ -249,6 +253,7 @@ public partial class App : System.Windows.Application
         {
             _settings = _settingsWindow.Result;
             ThemeService.Apply(_settings.Theme);
+            _rtssIntegration.SetEnabled(_settings.RtssEnabled);
             _monitor?.SetInterval(_settings.UpdateIntervalMilliseconds);
             _monitor?.SetSelectedGpu(_settings.SelectedGpuIdentifier);
             _window.ApplySettings(_settings);
@@ -286,7 +291,8 @@ public partial class App : System.Windows.Application
             return;
         }
 
-        _diagnosticsWindow = new DiagnosticsWindow(_monitor.GetDiagnosticsReport()) { Owner = _window };
+        var report = _monitor.GetDiagnosticsReport() + Environment.NewLine + Environment.NewLine + _rtssIntegration.Status;
+        _diagnosticsWindow = new DiagnosticsWindow(report) { Owner = _window };
         _diagnosticsWindow.Closed += (_, _) => _diagnosticsWindow = null;
         _diagnosticsWindow.Show();
     }
@@ -322,6 +328,9 @@ public partial class App : System.Windows.Application
             await _monitor.StopAsync();
             _monitor.Dispose();
         }
+
+        await _rtssIntegration.StopAsync();
+        _rtssIntegration.Dispose();
 
         if (_trayIcon is not null)
         {

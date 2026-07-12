@@ -142,6 +142,7 @@
                         <CheckBox x:Name="ShowStorageCheckBox" Content="SSD" Margin="0,0,14,6" />
                         <CheckBox x:Name="ShowFansCheckBox" Content="Fans" Margin="0,0,14,6" />
                         <CheckBox x:Name="ShowNetworkCheckBox" Content="Rede" Margin="0,0,0,6" />
+                        <CheckBox x:Name="RtssEnabledCheckBox" Content="FPS via RTSS" Margin="14,0,0,6" />
                     </WrapPanel>
                 </StackPanel>
             </Grid>

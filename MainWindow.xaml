@@ -163,6 +163,7 @@
                         <TextBlock x:Name="StorageMetricText" Text="SSD --" Margin="0,0,14,3" FontSize="9" Foreground="{StaticResource MutedText}" />
                         <TextBlock x:Name="FanMetricText" Text="FAN --" Margin="0,0,14,3" FontSize="9" Foreground="{StaticResource MutedText}" />
                         <TextBlock x:Name="NetworkMetricText" Text="NET --" Margin="0,0,0,3" FontSize="9" Foreground="{StaticResource MutedText}" />
+                        <TextBlock x:Name="FrameMetricText" Text="FPS --" Margin="14,0,0,3" FontSize="9" Foreground="#FFFFB86C" />
                     </WrapPanel>
                 </Grid>
             </Border>

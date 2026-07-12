@@ -12,3 +12,10 @@
 - Usage: signed low-level Windows driver installed separately by the user
 
 PawnIO is not bundled with this repository or the Pulse Widget executable.
+
+## RivaTuner Statistics Server
+
+- Project: https://www.guru3d.com/download/rtss-rivatuner-statistics-server-download/
+- Usage: optional external provider for FPS and frametime through shared memory
+
+RTSS is not bundled, redistributed, or required for hardware monitoring.

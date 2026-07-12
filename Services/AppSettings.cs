@@ -50,6 +50,8 @@ public sealed class AppSettings
 
     public bool ShowNetwork { get; set; } = true;
 
+    public bool RtssEnabled { get; set; }
+
     public AppSettings Clone()
     {
         return new AppSettings
@@ -77,7 +79,8 @@ public sealed class AppSettings
             ShowVram = ShowVram,
             ShowStorage = ShowStorage,
             ShowFans = ShowFans,
-            ShowNetwork = ShowNetwork
+            ShowNetwork = ShowNetwork,
+            RtssEnabled = RtssEnabled
         };
     }
 }

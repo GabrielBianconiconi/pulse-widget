@@ -39,6 +39,7 @@ public partial class SettingsWindow : Window
         ShowStorageCheckBox.IsChecked = settings.ShowStorage;
         ShowFansCheckBox.IsChecked = settings.ShowFans;
         ShowNetworkCheckBox.IsChecked = settings.ShowNetwork;
+        RtssEnabledCheckBox.IsChecked = settings.RtssEnabled;
     }
 
     public AppSettings Result { get; }
@@ -83,6 +84,7 @@ public partial class SettingsWindow : Window
         Result.ShowStorage = ShowStorageCheckBox.IsChecked == true;
         Result.ShowFans = ShowFansCheckBox.IsChecked == true;
         Result.ShowNetwork = ShowNetworkCheckBox.IsChecked == true;
+        Result.RtssEnabled = RtssEnabledCheckBox.IsChecked == true;
         if (double.TryParse(CpuThresholdTextBox.Text, out var cpuThreshold))
         {
             Result.CpuTemperatureThreshold = Math.Clamp(cpuThreshold, 60, 105);
