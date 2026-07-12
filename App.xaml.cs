@@ -32,9 +32,14 @@ public partial class App : System.Windows.Application
         base.OnStartup(e);
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
-        AppLog.Info($"Pulse Widget iniciado. Argumentos: {string.Join(' ', e.Args)}");
+        var launchMode = SensorHostRunner.IsHostMode(e.Args)
+            ? "sensor-host"
+            : e.Args.Contains("--autostart")
+                ? "autostart"
+                : "interactive";
+        AppLog.Info($"Pulse Widget iniciado. Modo: {launchMode}");
 
-        if (SensorHostRunner.IsHostMode(e.Args))
+        if (launchMode == "sensor-host")
         {
             _ = RunSensorHostAsync(e.Args);
             return;
